@@ -9,57 +9,26 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    aipr_2507_support_dir = get_package_share_directory('aipr_2507_support')
+    meca500_world_dir = get_package_share_directory('meca500_world')
 
-    included_launch = IncludeLaunchDescription(
+    sim_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(aipr_2507_support_dir, 'launch', 'sim.launch.py')
+            os.path.join(meca500_world_dir, 'launch', 'sim.launch.py')
         )
     )
 
-    main = Node(
-        package="esame",
-        executable="Main",
+    meca500_control = Node(
+        package="meca500_control",
+        executable="meca500_sine_joint1",
         output="screen",
         parameters=[{
-        "panda_joint_movement_duration" : PANDA_JOINT_MOVEMENT_DURATION,
-        "meca_joint_movement_duration" : MECA_JOINT_MOVEMENT_DURATION,
+        "cycle_frequency_hz" : 1000,
+        "sine_wave_period_s" : 10.0,
+        "sine_wave_amplitude" : 1.0
     }]
     )
 
-    panda_joint_traj = Node(
-        package="esame",
-        executable="PandaJointTraj",
-        output="screen",
-        parameters=[
-            {"cycle_frequency_hz":JOINT_TRAJ_CYCLE_FREQUENCY_HZ,},
-        ]
-    )
-
-    meca_joint_traj = Node(
-        package="esame",
-        executable="MecaJointTraj",
-        output="screen",
-        parameters=[
-            {"cycle_frequency_hz":JOINT_TRAJ_CYCLE_FREQUENCY_HZ,},
-        ]
-    )
-
-    distance_calculator = Node(
-        package="esame",
-        executable="DistanceCalculator",
-        output="screen",
-        parameters=[
-            {"distance_topic" : DISTANCE_TOPIC,
-            "ee_frames" : EE_FRAMES,
-            "cycle_time_micros" : DISTANCE_CYCLE_TIME_MICROS}
-        ]
-    )
-
     return LaunchDescription([
-        included_launch,
-        panda_joint_traj,
-        meca_joint_traj,
-        distance_calculator,
-        main,
+        meca500_control,
+        sim_launch,
         ])
