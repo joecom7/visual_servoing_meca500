@@ -224,7 +224,7 @@
      filename="gz-sim-joint-controller-system"
      name="gz::sim::systems::JointController">
      <joint_name>meca_axis_1_joint</joint_name>
-     <initial_velocity>1.0</initial_velocity>
+     <initial_velocity>0.0</initial_velocity>
     </plugin>
   </gazebo>
   <gazebo>
