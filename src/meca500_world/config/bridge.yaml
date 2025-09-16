@@ -12,76 +12,39 @@
   gz_type_name: "gz.msgs.Model"
   direction: GZ_TO_ROS
 
-# # Topic accpeting joint cmd in position
-# - ros_topic_name: "/joint1/cmd_pos"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint1/0/cmd_pos"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
+# Topic accpeting joint cmd in position
+- ros_topic_name: "/joint1/cmd_vel"
+  gz_topic_name: "/model/meca500/joint/meca_axis_1_joint/cmd_vel"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
 
-# - ros_topic_name: "/joint2/cmd_pos"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint2/0/cmd_pos"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
+- ros_topic_name: "/joint2/cmd_vel"
+  gz_topic_name: "/model/meca500/joint/meca_axis_2_joint/cmd_vel"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
 
-# - ros_topic_name: "/joint3/cmd_pos"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint3/0/cmd_pos"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
+- ros_topic_name: "/joint3/cmd_vel"
+  gz_topic_name: "/model/meca500/joint/meca_axis_3_joint/cmd_vel"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
 
-# - ros_topic_name: "/joint4/cmd_pos"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint4/0/cmd_pos"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
+- ros_topic_name: "/joint4/cmd_vel"
+  gz_topic_name: "/model/meca500/joint/meca_axis_4_joint/cmd_vel"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
 
-# - ros_topic_name: "/joint5/cmd_pos"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint5/0/cmd_pos"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
+- ros_topic_name: "/joint5/cmd_vel"
+  gz_topic_name: "/model/meca500/joint/meca_axis_5_joint/cmd_vel"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
 
-# - ros_topic_name: "/joint6/cmd_pos"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint6/0/cmd_pos"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
-
-# # Topic accpeting joint cmd in force
-# - ros_topic_name: "/joint1/cmd_force"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint1/cmd_force"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
-
-# - ros_topic_name: "/joint2/cmd_force"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint2/cmd_force"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
-
-# - ros_topic_name: "/joint3/cmd_force"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint3/cmd_force"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
-
-# - ros_topic_name: "/joint4/cmd_force"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint4/cmd_force"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
-
-# - ros_topic_name: "/joint5/cmd_force"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint5/cmd_force"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
-
-# - ros_topic_name: "/joint6/cmd_force"
-#   gz_topic_name: "/model/meca500/joint/fp3_joint6/cmd_force"
-#   ros_type_name: "std_msgs/msg/Float64"
-#   gz_type_name: "gz.msgs.Double"
-#   direction: ROS_TO_GZ
+- ros_topic_name: "/joint6/cmd_vel"
+  gz_topic_name: "/model/meca500/joint/meca_axis_6_joint/cmd_vel"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
