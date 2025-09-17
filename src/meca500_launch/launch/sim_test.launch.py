@@ -28,7 +28,14 @@ def generate_launch_description():
     }]
     )
 
+    meca500_vision = Node(
+        package="meca500_vision",
+        executable="image_listener",
+        output="screen"
+    )
+
     return LaunchDescription([
         meca500_control,
         sim_launch,
+        meca500_vision,
         ])
