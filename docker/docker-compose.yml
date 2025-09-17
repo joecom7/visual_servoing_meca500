@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   ros2-gazebo:
@@ -14,10 +13,5 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw  # X11 socket
     devices:
       - /dev/dri:/dev/dri        # accesso GPU Intel/AMD (mesa)
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]  # se hai Nvidia + Docker GPU plugin
     stdin_open: true
     tty: true
