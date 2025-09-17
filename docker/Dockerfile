@@ -9,7 +9,7 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/p
 
 RUN apt-get update && apt-get install -y  gz-harmonic
 
-RUN apt-get update && apt-get install -y ros-jazzy-ros-gz-sim ros-jazzy-ros-gz-image
+RUN apt-get update && apt-get install -y ros-jazzy-ros-gz-sim ros-jazzy-ros-gz-image ros-jazzy-cv-bridge
 
 WORKDIR /root/ws
 COPY src/ src/

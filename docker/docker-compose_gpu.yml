@@ -1,0 +1,23 @@
+
+services:
+  ros2-gazebo:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: ros2-gazebo
+    network_mode: host   # ROS2 DDS ha bisogno di multicast -> host networking
+    environment:
+      - DISPLAY=${DISPLAY}             # forward GUI opzionale
+      - QT_X11_NO_MITSHM=1
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # X11 socket
+    devices:
+      - /dev/dri:/dev/dri        # accesso GPU Intel/AMD (mesa)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    stdin_open: true
+    tty: true
