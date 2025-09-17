@@ -148,4 +148,21 @@ def generate_launch_description():
     ld.add_action(robot_state)
     ld.add_action(bridge)
 
+    # Assuming pkg_meca500_world is already defined in your main launch
+    ball_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_meca500_world, 'launch', 'object.launch.py')
+        ),
+        launch_arguments={
+            'world': LaunchConfiguration('world'),
+            'ball_name': 'red_ball',
+            'x': '1.5',
+            'y': '0.0',
+            'z': '0.55'
+        }.items()
+    )
+
+    # Then add it to the LaunchDescription
+    ld.add_action(ball_launch)
+
     return ld
