@@ -23,8 +23,8 @@ def generate_launch_description():
         output="screen",
         parameters=[{
         "cycle_frequency_hz" : 1000,
-        "sine_wave_period_s" : 10.0,
-        "sine_wave_amplitude" : 1.0
+        "sine_wave_period_s" : 3.0,
+        "sine_wave_amplitude" : 0.5
     }]
     )
 

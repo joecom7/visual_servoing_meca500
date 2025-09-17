@@ -1,6 +1,7 @@
 #include <cstdio>
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float64.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 #include "math.h"
 
 const int DEFAULT_CYCLE_FREQUENCY_HZ = 1000;
@@ -27,15 +28,32 @@ int main(int argc, char** argv)
       node->create_publisher<std_msgs::msg::Float64>("/joint1/cmd_vel", 10);
 
   auto t0 = node->get_clock()->now();
+  bool initialized = false;
+
+  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr subscription =
+      node->create_subscription<sensor_msgs::msg::JointState>(
+          "/joint_states_no_effort", 10,
+          [node, &t0, &initialized](sensor_msgs::msg::JointState::UniquePtr msg) -> void {
+            if (!initialized && fabs(msg->position[0]) < 1e-4)
+            {
+              t0 = node->get_clock()->now();
+            }
+            else
+            {
+              initialized = true;
+            }
+          });
 
   rclcpp::WallRate loop_rate(cycle_frequency_hz);
+
+  double derivative_amplitude = sine_wave_w*sine_wave_amplitude;
 
   while (rclcpp::ok())
   {
     rclcpp::Duration dt = node->get_clock()->now() - t0;
 
     auto message = std_msgs::msg::Float64();
-    message.data = sine_wave_amplitude * cos(sine_wave_w * dt.seconds());
+    message.data = derivative_amplitude * cos(sine_wave_w * dt.seconds());
 
     publisher->publish(message);
 
