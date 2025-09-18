@@ -272,20 +272,22 @@
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <box size="0.05 0.05 0.05"/>
+      <mesh filename="../../meshes/kinect.dae"/> <!-- modello 3D della Kinect -->
+      <!-- puoi scalare se necessario -->
+      <scale>0.001 0.001 0.001</scale> 
     </geometry>
   </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <box size="0.05 0.05 0.05"/>
+      <mesh filename="../../meshes/kinect.dae"/> <!-- collisione semplificata -->
+      <scale>0.001 0.001 0.001</scale>
     </geometry>
   </collision>
   <inertial>
-    <mass value="0.1"/>
+    <mass value="0.5"/> <!-- peso realistico della camera -->
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <inertia ixx="0.0001" iyy="0.0001" izz="0.0001"
-             ixy="0" ixz="0" iyz="0"/>
+    <inertia ixx="0.0005" iyy="0.0005" izz="0.0005" ixy="0" ixz="0" iyz="0"/>
   </inertial>
 </link>
 
