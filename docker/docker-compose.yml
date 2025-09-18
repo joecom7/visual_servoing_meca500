@@ -11,9 +11,12 @@ services:
       - QT_X11_NO_MITSHM=1
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw  # X11 socket
-      - build_data:/root/ws
-      - ../src:/root/ws
+      - meca500_vs_build_data:/root/ws
+      - ../src:/root/ws/src:ro
     devices:
       - /dev/dri:/dev/dri        # accesso GPU Intel/AMD (mesa)
     stdin_open: true
     tty: true
+
+volumes:
+  meca500_vs_build_data:
