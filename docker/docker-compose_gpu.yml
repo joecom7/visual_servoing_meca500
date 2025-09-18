@@ -12,6 +12,8 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw  # X11 socket
+      - build_data:/root/ws
+      - ../src:/root/ws/src:ro
     devices:
       - /dev/dri:/dev/dri        # accesso GPU Intel/AMD (mesa)
     deploy:
@@ -21,3 +23,6 @@ services:
             - capabilities: [gpu]
     stdin_open: true
     tty: true
+
+volumes:
+  build_data:

@@ -84,7 +84,7 @@ def generate_launch_description():
     allow_renaming = LaunchConfiguration('allow_renaming')
     x = LaunchConfiguration('x', default='0.0')
     y = LaunchConfiguration('y', default='0.0')
-    z = LaunchConfiguration('z', default='0.0')
+    z = LaunchConfiguration('z', default='0.75')
     roll = LaunchConfiguration('R', default='0.0')
     pitch = LaunchConfiguration('P', default='0.0')
     yaw = LaunchConfiguration('Y', default='0.0')
@@ -148,21 +148,20 @@ def generate_launch_description():
     ld.add_action(robot_state)
     ld.add_action(bridge)
 
-    # Assuming pkg_meca500_world is already defined in your main launch
-    ball_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_meca500_world, 'launch', 'object.launch.py')
-        ),
-        launch_arguments={
-            'world': LaunchConfiguration('world'),
-            'ball_name': 'red_ball',
-            'x': '1.5',
-            'y': '0.0',
-            'z': '0.55'
-        }.items()
+    table_launch = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource(
+        os.path.join(pkg_meca500_world, 'launch', 'table.launch.py')
+    ),
+    launch_arguments={
+        'world': LaunchConfiguration('world'),
+        'table_name': 'table1',
+        'x': '0.0',
+        'y': '0.0',
+        'height': '0.75',
+        'width': '0.8',
+        'depth': '1.2'
+    }.items()
     )
-
-    # Then add it to the LaunchDescription
-    ld.add_action(ball_launch)
+    ld.add_action(table_launch)
 
     return ld
