@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(meca500_control)
+project(meca500_utils)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -8,25 +8,27 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(meca500_interfaces REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-add_executable(sine_joint1 src/sine_joint1.cpp)
-target_include_directories(sine_joint1 PUBLIC
+add_executable(jacobian_calculator src/jacobian_calculator.cpp)
+target_include_directories(jacobian_calculator PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-target_compile_features(sine_joint1 PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(jacobian_calculator PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(
-  sine_joint1
-  "std_msgs"
+  jacobian_calculator
   "rclcpp"
+  "meca500_interfaces"
   "sensor_msgs"
+  "moveit_ros_planning_interface"
 )
 
-install(TARGETS sine_joint1
+install(TARGETS jacobian_calculator
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

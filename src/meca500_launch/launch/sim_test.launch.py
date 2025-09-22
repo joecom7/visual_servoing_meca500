@@ -9,33 +9,40 @@ from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
-    meca500_world_dir = get_package_share_directory('meca500_world')
+    meca500_world_dir = get_package_share_directory("meca500_world")
 
     sim_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(meca500_world_dir, 'launch', 'sim.launch.py')
+            os.path.join(meca500_world_dir, "launch", "sim.launch.py")
         )
     )
 
     meca500_control = Node(
         package="meca500_control",
-        executable="meca500_sine_joint1",
+        executable="sine_joint1",
         output="screen",
-        parameters=[{
-        "cycle_frequency_hz" : 1000,
-        "sine_wave_period_s" : 7.0,
-        "sine_wave_amplitude" : 0.5
-    }]
+        parameters=[
+            {
+                "cycle_frequency_hz": 1000,
+                "sine_wave_period_s": 7.0,
+                "sine_wave_amplitude": 0.5,
+            }
+        ],
     )
 
     meca500_vision = Node(
-        package="meca500_vision",
-        executable="image_listener",
-        output="screen"
+        package="meca500_vision", executable="image_listener", output="screen"
     )
 
-    return LaunchDescription([
-        meca500_control,
-        sim_launch,
-        meca500_vision,
-        ])
+    jacobian_calculator = Node(
+        package="meca500_utils", executable="jacobian_calculator", output="screen"
+    )
+
+    return LaunchDescription(
+        [
+            meca500_control,
+            sim_launch,
+            meca500_vision,
+            jacobian_calculator,
+        ]
+    )
