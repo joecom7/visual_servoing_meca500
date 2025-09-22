@@ -53,3 +53,5 @@ CATKIN_IGNORE
 log
 .vscode
 install
+
+yolov8n.pt
