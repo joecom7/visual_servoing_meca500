@@ -11,6 +11,21 @@ RUN apt-get update && apt-get install -y  gz-harmonic
 
 RUN apt-get update && apt-get install -y ros-jazzy-ros-gz-sim ros-jazzy-ros-gz-image ros-jazzy-cv-bridge
 
+RUN apt-get install -y python3-venv
+
+# Create a virtual environment in /venv
+RUN python3 -m venv /venv
+
+RUN /venv/bin/pip uninstall -y numpy
+
+# Activate venv and install packages
+RUN /venv/bin/pip install --upgrade pip && \
+    /venv/bin/pip install "numpy<2.0" ultralytics
+
+# Make sure the venv is activated by default when running any command
+ENV VIRTUAL_ENV=/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 COPY docker/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]
