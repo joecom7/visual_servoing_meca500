@@ -22,9 +22,9 @@ RUN /venv/bin/pip uninstall -y numpy
 RUN /venv/bin/pip install --upgrade pip && \
     /venv/bin/pip install "numpy<2.0" ultralytics
 
-# Make sure the venv is activated by default when running any command
-ENV VIRTUAL_ENV=/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN /venv/bin/pip install catkin_pkg empy lark
+
+RUN apt-get install -y ros-jazzy-moveit
 
 COPY docker/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
