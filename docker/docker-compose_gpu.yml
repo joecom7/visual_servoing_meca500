@@ -14,8 +14,6 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw  # X11 socket
       - meca500_vs_build_data:/root/ws
       - ../src:/root/ws/src:ro
-    devices:
-      - /dev/dri:/dev/dri        # accesso GPU Intel/AMD (mesa)
     deploy:
       resources:
         reservations:
