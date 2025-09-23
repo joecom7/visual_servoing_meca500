@@ -24,7 +24,7 @@ RUN /venv/bin/pip install --upgrade pip && \
 
 RUN /venv/bin/pip install catkin_pkg empy lark
 
-RUN apt-get install -y ros-jazzy-moveit
+RUN apt-get update && apt-get install -y ros-jazzy-moveit
 
 COPY docker/entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
