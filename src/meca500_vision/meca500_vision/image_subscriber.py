@@ -4,7 +4,6 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose, PoseArray
 from cv_bridge import CvBridge
 import cv2
-
 from ultralytics import YOLO
 
 
@@ -13,8 +12,19 @@ class PersonDetector(Node):
     def __init__(self):
         super().__init__("person_detector")
 
-        # Lightweight YOLO model for CPU
-        self.model = YOLO("yolov8n.pt")  # nano model
+        # Declare launch parameter
+        self.declare_parameter("performance_mode", "high")
+        mode = self.get_parameter("performance_mode").value
+
+        # Map performance modes to YOLO image sizes
+        mode_to_imgsz = {
+            "low": 160,
+            "medium": 320,
+            "high": None,  # or None for full resolution
+        }
+        self.imgsz = mode_to_imgsz.get(mode, 640)
+
+        self.model = YOLO("yolov8n.pt")
 
         # ROS subscriptions and publishers
         self.subscription = self.create_subscription(
@@ -30,20 +40,23 @@ class PersonDetector(Node):
             self.get_logger().error(f"Could not convert image: {e}")
             return
 
-        results = self.model(img, verbose=False)
+        if self.imgsz is not None:
+            results = self.model(img, imgsz=self.imgsz, verbose=False)
+
+        else:
+            results = self.model(img, verbose=False)
+
         pose_array = PoseArray()
         pose_array.header.stamp = self.get_clock().now().to_msg()
         pose_array.header.frame_id = "camera_frame"
 
         for r in results:
             for box in r.boxes:
-                if int(box.cls) != 0:  # Only person class
+                if int(box.cls) != 0:
                     continue
-
                 x1, y1, x2, y2 = box.xyxy[0].cpu().detach().numpy()
                 cx = float((x1 + x2) / 2)
                 cy = float((y1 + y2) / 2)
-
                 pose = Pose()
                 pose.position.x = cx
                 pose.position.y = cy
@@ -52,7 +65,6 @@ class PersonDetector(Node):
 
         if pose_array.poses:
             self.publisher.publish(pose_array)
-            # self.get_logger().info(f"Published {len(pose_array.poses)} person centers")
 
         # Optional visualization
         annotated_frame = results[0].plot()

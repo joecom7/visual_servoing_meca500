@@ -17,6 +17,13 @@ def generate_launch_description():
         description="Update rate of the camera in Hz"
     )
 
+    # Declare the performance_mode argument for YOLO
+    declare_performance_mode = DeclareLaunchArgument(
+        "performance_mode",
+        default_value="high",
+        description="YOLO performance mode: low, medium, high"
+    )
+
     # Pass the launch argument to the sim.launch.py file
     sim_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -41,7 +48,12 @@ def generate_launch_description():
     )
 
     meca500_vision = Node(
-        package="meca500_vision", executable="image_listener", output="screen"
+        package="meca500_vision",
+        executable="image_listener",
+        output="screen",
+        parameters=[
+            {"performance_mode": LaunchConfiguration("performance_mode")}
+        ],
     )
 
     jacobian_calculator = Node(
@@ -51,6 +63,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             declare_camera_update_rate,
+            declare_performance_mode,
             meca500_control,
             sim_launch,
             meca500_vision,
