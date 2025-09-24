@@ -17,151 +17,187 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import FileContent, LaunchConfiguration, TextSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution
+import xacro
 
 
-def generate_launch_description():
+def launch_sim(context, *args, **kwargs):
 
     # ''use_sim_time'' is used to have ros2 use /clock topic for the time source
-    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
-    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    pkg_meca500_world = get_package_share_directory('meca500_world')
+    use_sim_time = LaunchConfiguration("use_sim_time", default="true")
+    pkg_ros_gz_sim = get_package_share_directory("ros_gz_sim")
+    pkg_meca500_world = get_package_share_directory("meca500_world")
 
-    urdf = FileContent(
-        PathJoinSubstitution([FindPackageShare('meca500_world'), 'models', 'meca500', 'meca500.urdf']))
+    # Path del file xacro
+    xacro_file = os.path.join(pkg_meca500_world, "models", "meca500", "meca500.xacro")
+    # Path del file URDF generato
+    urdf_file = os.path.join(pkg_meca500_world, "models", "meca500", "meca500.urdf")
+
+    camera_update_rate = float(LaunchConfiguration('camera_update_rate').perform(context))
+
+    # Genero l'URDF a runtime e lo scrivo su file
+    urdf_string = xacro.process_file(
+        xacro_file, mappings={"camera_update_rate": str(camera_update_rate)}  # deve essere stringa
+    ).toxml()
+
+    with open(urdf_file, "w") as f:
+        f.write(urdf_string)
+        print(f"[INFO] URDF scritto su disco: {urdf_file}")
+
+    urdf = FileContent(urdf_file)
 
     DeclareLaunchArgument(
-        'use_sim_time',
-        default_value='true',
-        description='Use simulation (Gazebo) clock if true')
+        "use_sim_time",
+        default_value="true",
+        description="Use simulation (Gazebo) clock if true",
+    )
+
 
     robot_state = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time, 'robot_description': urdf}],
-        arguments=[urdf])
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher",
+        output="screen",
+        parameters=[{"use_sim_time": use_sim_time, "robot_description": urdf}],
+        arguments=[urdf],
+    )
 
-    meca500_fp3_model = PathJoinSubstitution([
-        pkg_meca500_world,
-        'models',
-        'meca500',
-        'meca500.urdf'
-    ])
+    meca500_fp3_model = PathJoinSubstitution(
+        [pkg_meca500_world, "models", "meca500", "meca500.urdf"]
+    )
 
     # Setup to launch the simulator and Gazebo world
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
-        launch_arguments={'gz_args': PathJoinSubstitution([
-            pkg_meca500_world,
-            'worlds',
-            'empty_world.sdf'
-        ])}.items(),
+            os.path.join(pkg_ros_gz_sim, "launch", "gz_sim.launch.py")
+        ),
+        launch_arguments={
+            "gz_args": PathJoinSubstitution(
+                [pkg_meca500_world, "worlds", "empty_world.sdf"]
+            )
+        }.items(),
     )
 
     bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        parameters=[{
-                'config_file': os.path.join(pkg_meca500_world, 'config', 'bridge.yaml'),
-                'qos_overrides./tf_static.publisher.durability': 'transient_local',
-        }],
-        output='screen'
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        parameters=[
+            {
+                "config_file": os.path.join(pkg_meca500_world, "config", "bridge.yaml"),
+                "qos_overrides./tf_static.publisher.durability": "transient_local",
+            }
+        ],
+        output="screen",
     )
-    world = LaunchConfiguration('world')
-    file = LaunchConfiguration('file')
-    model_string = LaunchConfiguration('model_string')
-    topic = LaunchConfiguration('topic')
-    entity_name = LaunchConfiguration('entity_name')
-    allow_renaming = LaunchConfiguration('allow_renaming')
-    x = LaunchConfiguration('x', default='0.0')
-    y = LaunchConfiguration('y', default='0.0')
-    z = LaunchConfiguration('z', default='0.75')
-    roll = LaunchConfiguration('R', default='0.0')
-    pitch = LaunchConfiguration('P', default='0.0')
-    yaw = LaunchConfiguration('Y', default='0.0')
+    world = LaunchConfiguration("world")
+    file = LaunchConfiguration("file")
+    model_string = LaunchConfiguration("model_string")
+    topic = LaunchConfiguration("topic")
+    entity_name = LaunchConfiguration("entity_name")
+    allow_renaming = LaunchConfiguration("allow_renaming")
+    x = LaunchConfiguration("x", default="0.0")
+    y = LaunchConfiguration("y", default="0.0")
+    z = LaunchConfiguration("z", default="0.75")
+    roll = LaunchConfiguration("R", default="0.0")
+    pitch = LaunchConfiguration("P", default="0.0")
+    yaw = LaunchConfiguration("Y", default="0.0")
 
     declare_world_cmd = DeclareLaunchArgument(
-        'world', default_value=TextSubstitution(text='meca500_world'),
-        description='World name')
+        "world",
+        default_value=TextSubstitution(text="meca500_world"),
+        description="World name",
+    )
     declare_file_cmd = DeclareLaunchArgument(
-        'file', default_value=meca500_fp3_model,
-        description='SDF/URDF filename of model')
+        "file",
+        default_value=meca500_fp3_model,
+        description="SDF/URDF filename of model",
+    )
     declare_model_string_cmd = DeclareLaunchArgument(
-        'model_string',
-        default_value='',
-        description='XML(SDF) string',
+        "model_string",
+        default_value="",
+        description="XML(SDF) string",
     )
     declare_topic_cmd = DeclareLaunchArgument(
-        'topic', default_value=TextSubstitution(text=''),
-        description='Get XML from this topic'
+        "topic",
+        default_value=TextSubstitution(text=""),
+        description="Get XML from this topic",
     )
     declare_entity_name_cmd = DeclareLaunchArgument(
-        'entity_name', default_value=TextSubstitution(text='meca500'),
-        description='Name of the entity'
+        "entity_name",
+        default_value=TextSubstitution(text="meca500"),
+        description="Name of the entity",
     )
     declare_allow_renaming_cmd = DeclareLaunchArgument(
-        'allow_renaming', default_value='False',
-        description='Whether the entity allows renaming or not'
+        "allow_renaming",
+        default_value="False",
+        description="Whether the entity allows renaming or not",
     )
 
     load_nodes = Node(
-        package='ros_gz_sim',
-        executable='create',
-        output='screen',
-        parameters=[{'world': world,
-                     'file': file,
-                     'string': model_string,
-                     'topic': topic,
-                     'name': entity_name,
-                     'allow_renaming': allow_renaming,
-                     'x': x,
-                     'y': y,
-                     'z': z,
-                     'R': roll,
-                     'P': pitch,
-                     'Y': yaw,
-                     }],
+        package="ros_gz_sim",
+        executable="create",
+        output="screen",
+        parameters=[
+            {
+                "world": world,
+                "file": file,
+                "string": model_string,
+                "topic": topic,
+                "name": entity_name,
+                "allow_renaming": allow_renaming,
+                "x": x,
+                "y": y,
+                "z": z,
+                "R": roll,
+                "P": pitch,
+                "Y": yaw,
+            }
+        ],
     )
-
-    # Create the launch description and populate
-    ld = LaunchDescription()
-
-    # Declare the launch options
-    ld.add_action(declare_world_cmd)
-    ld.add_action(declare_file_cmd)
-    ld.add_action(declare_model_string_cmd)
-    ld.add_action(declare_topic_cmd)
-    ld.add_action(declare_entity_name_cmd)
-    ld.add_action(declare_allow_renaming_cmd)
-    # Add the actions to launch all of the create nodes
-    ld.add_action(gz_sim)
-    ld.add_action(load_nodes)
-    ld.add_action(robot_state)
-    ld.add_action(bridge)
 
     table_launch = IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-        os.path.join(pkg_meca500_world, 'launch', 'table.launch.py')
-    ),
-    launch_arguments={
-        'world': LaunchConfiguration('world'),
-        'table_name': 'table1',
-        'x': '0.0',
-        'y': '0.0',
-        'height': '0.75',
-        'width': '0.8',
-        'depth': '1.2'
-    }.items()
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_meca500_world, "launch", "table.launch.py")
+        ),
+        launch_arguments={
+            "world": LaunchConfiguration("world"),
+            "table_name": "table1",
+            "x": "0.0",
+            "y": "0.0",
+            "height": "0.75",
+            "width": "0.8",
+            "depth": "1.2",
+        }.items(),
     )
-    ld.add_action(table_launch)
 
-    return ld
+    return [
+        declare_world_cmd,
+        declare_file_cmd,
+        declare_model_string_cmd,
+        declare_topic_cmd,
+        declare_entity_name_cmd,
+        declare_allow_renaming_cmd,
+        gz_sim,
+        load_nodes,
+        robot_state,
+        bridge,
+        table_launch,
+    ]
+
+
+def generate_launch_description():
+
+    # Declare launch arguments
+    declare_camera_update_rate = DeclareLaunchArgument(
+        "camera_update_rate", default_value="60.0"
+    )
+
+    return LaunchDescription(
+        [declare_camera_update_rate, OpaqueFunction(function=launch_sim)]
+    )
