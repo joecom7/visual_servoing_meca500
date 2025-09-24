@@ -3,3 +3,4 @@ ultralytics
 catkin_pkg
 empy
 lark
+typeguard
