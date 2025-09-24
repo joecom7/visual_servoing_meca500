@@ -7,11 +7,7 @@ RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyri
 
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 
-RUN apt-get update && apt-get install -y  gz-harmonic
-
-RUN apt-get update && apt-get install -y ros-jazzy-ros-gz-sim ros-jazzy-ros-gz-image ros-jazzy-cv-bridge ros-jazzy-moveit
-
-RUN apt-get update && apt-get install -y python3-venv virtualenv
+RUN apt-get update && apt-get install -y  gz-harmonic ros-jazzy-ros-gz-sim ros-jazzy-ros-gz-image ros-jazzy-cv-bridge ros-jazzy-moveit python3-venv virtualenv
 
 # Create a virtual environment in /venv
 RUN virtualenv -p python3 /venv
