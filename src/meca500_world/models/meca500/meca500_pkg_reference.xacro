@@ -9,13 +9,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_base.dae"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_base.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_base_collision.stl"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_base_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -30,13 +30,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j1.dae"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j1.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j1_collision.stl"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j1_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -58,13 +58,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j2.dae"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j2.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j2_collision.stl"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j2_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -86,13 +86,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j3.dae"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j3.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j3_collision.stl"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j3_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -115,13 +115,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j4.dae"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j4.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j4_collision.stl"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j4_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -144,13 +144,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j5.dae"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j5.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j5_collision.stl"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j5_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -173,13 +173,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j6.dae"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j6.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j6_collision.stl"/>
+        <mesh filename="package://meca500_world/meshes/meca_500_r3_j6_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -268,65 +268,33 @@
     </plugin>
   </gazebo>
 
-  <link name="camera_mount_link">
+  <link name="camera_link">
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="../../meshes/aggancio.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://meca500_world/meshes/kinect.dae"/> <!-- modello 3D della Kinect -->
+      <!-- puoi scalare se necessario -->
+      <scale>0.001 0.001 0.001</scale> 
     </geometry>
-    <material name="yellow_light">
-      <color rgba="1.0 1.0 0.6 1.0"/>
-    </material>
   </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="../../meshes/aggancio.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-  <inertial>
-    <mass value="0.2"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <inertia ixx="0.0002" iyy="0.0002" izz="0.0002" ixy="0" ixz="0" iyz="0"/>
-  </inertial>
-</link>
-
-<!-- Joint fisso tra polso e supporto -->
-<joint name="camera_mount_joint" type="fixed">
-  <parent link="meca_axis_6_link"/>
-  <child link="camera_mount_link"/>
-  <origin xyz="0.082 0 -0.035" rpy="1.5708 0 1.5708"/>
-</joint>
-
-<!-- Link della camera -->
-<link name="camera_link">
-  <visual>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="../../meshes/kinect.dae"/>
+      <mesh filename="package://meca500_world/meshes/kinect.dae"/> <!-- collisione semplificata -->
       <scale>0.001 0.001 0.001</scale>
     </geometry>
-  </visual>
-  <collision>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <geometry>
-      <box>
-        <size>0.073 0.276 0.072</size>
-      </box>
-    </geometry>
   </collision>
   <inertial>
-    <mass value="0.1"/>
+    <mass value="0.5"/> <!-- peso realistico della camera -->
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <inertia ixx="0.0005" iyy="0.0005" izz="0.0005" ixy="0" ixz="0" iyz="0"/>
   </inertial>
 </link>
 
-<!-- Joint fisso tra supporto e camera -->
 <joint name="camera_joint" type="fixed">
-  <parent link="camera_mount_link"/>
+  <parent link="meca_axis_6_link"/>
   <child link="camera_link"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <origin xyz="0 0 0.1" rpy="0 0 0"/> <!-- sposta la telecamera sopra il polso -->
 </joint>
 
 
