@@ -4,6 +4,16 @@
   <xacro:arg name="camera_update_rate" default="60"/>
   <xacro:property name="camera_update_rate" value="$(arg camera_update_rate)"/>
 
+
+  <xacro:arg name="use_package_reference" default="true"/>
+  <xacro:property name="mesh_prefix" value="$(arg use_package_reference)"/>
+  <xacro:if value="$(arg use_package_reference)">
+    <xacro:property name="mesh_prefix" value="package://meca500_world/"/>
+  </xacro:if>
+  <xacro:unless value="$(arg use_package_reference)">
+    <xacro:property name="mesh_prefix" value="../../"/>
+  </xacro:unless>
+
   <xacro:macro name="sensor_d435i" params="parent
                                           name:=camera
                                           topics_ns:=camera
@@ -74,7 +84,7 @@
       <visual>
       <origin xyz="${d435i_cam_mount_from_center_offset} ${-d435i_cam_depth_py} 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
         <geometry>
-          <mesh filename="../../meshes/d435.dae"/>
+          <mesh filename="${mesh_prefix}meshes/d435.dae"/>
         </geometry>
         <material name="${name}_aluminum"/>
       </visual>
@@ -311,13 +321,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_base.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_base.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_base_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_base_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -332,13 +342,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j1.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j1.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j1_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j1_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -360,13 +370,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j2.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j2.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j2_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j2_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -388,13 +398,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j3.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j3.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j3_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j3_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -417,13 +427,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j4.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j4.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j4_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j4_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -446,13 +456,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j5.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j5.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j5_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j5_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -475,13 +485,13 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j6.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j6.dae"/>
       </geometry>
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="../../meshes/meca_500_r3_j6_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j6_collision.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -574,7 +584,7 @@
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="../../meshes/aggancio_robot_visual.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="${mesh_prefix}meshes/aggancio_robot_visual.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="yellow_light">
       <color rgba="1.0 1.0 0.6 1.0"/>
@@ -583,7 +593,7 @@
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="../../meshes/aggancio_robot_collision.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="${mesh_prefix}meshes/aggancio_robot_collision.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
   <inertial>
@@ -604,7 +614,7 @@
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="../../meshes/aggancio_camera_visual.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="${mesh_prefix}meshes/aggancio_camera_visual.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="beige_light">
       <color rgba="0.96 0.87 0.70 1.0"/>
@@ -613,7 +623,7 @@
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="../../meshes/aggancio_camera_collision.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="${mesh_prefix}meshes/aggancio_camera_collision.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
   <inertial>

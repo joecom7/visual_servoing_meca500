@@ -46,7 +46,7 @@ def generate_launch_description():
 
     meca500_control = Node(
         package="meca500_control",
-        executable="circle_end_effector",
+        executable="sine_joint1",
         output="screen",
         parameters=[
             {

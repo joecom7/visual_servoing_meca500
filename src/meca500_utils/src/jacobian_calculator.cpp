@@ -25,8 +25,8 @@ private:
   std::vector<double> current_joint_positions_;
   bool received_joint_state_ = false;
 
-  const std::string ROBOT_MODEL_GROUP = "meca_arm";  // adjust to your MoveIt SRDF group
-  const std::string EE_LINK = "camera_link";         // end-effector link
+  const std::string ROBOT_MODEL_GROUP = "meca500_arm";  // adjust to your MoveIt SRDF group
+  const std::string EE_LINK = "D435i_camera_link";         // end-effector link
 
 public:
   JacobianServiceNode() : Node("jacobian_service_node")

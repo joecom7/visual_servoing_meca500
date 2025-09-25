@@ -1,66 +1,87 @@
-#include <cstdio>
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/float64.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
-#include "math.h"
+#include "meca500_interfaces/srv/get_jacobian.hpp"
+#include <Eigen/Dense>
+#include <vector>
+#include <math.h>
 
-const int DEFAULT_CYCLE_FREQUENCY_HZ = 1000;
-const double DEFAULT_SINE_WAVE_PERIOD_S = 5.0;
-const double DEFAULT_SINE_WAVE_AMPLITUDE = 1.0;
+using GetJacobian = meca500_interfaces::srv::GetJacobian;
+
+const double RADIUS = 0.05; // 5 cm circle
+const double FREQUENCY = 0.2; // Hz
+const int NUM_JOINTS = 6; // Adjust to your robot
 
 int main(int argc, char** argv)
 {
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<rclcpp::Node>("main");
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<rclcpp::Node>("circle_yz_node");
 
-  node->declare_parameter<int>("cycle_frequency_hz", DEFAULT_CYCLE_FREQUENCY_HZ);
-  int cycle_frequency_hz = node->get_parameter("cycle_frequency_hz").as_int();
+    // Subscribers
+    std::vector<double> current_joint_positions(NUM_JOINTS, 0.0);
+    bool received_joint_state = false;
 
-  node->declare_parameter<double>("sine_wave_period_s", DEFAULT_SINE_WAVE_PERIOD_S);
-  double sine_wave_period_s = node->get_parameter("sine_wave_period_s").as_double();
+    auto joint_sub = node->create_subscription<sensor_msgs::msg::JointState>(
+        "/joint_states_no_effort", 10,
+        [&current_joint_positions, &received_joint_state](const sensor_msgs::msg::JointState::SharedPtr msg){
+            for (int i = 0; i < NUM_JOINTS; ++i)
+                current_joint_positions[i] = msg->position[i];
+            received_joint_state = true;
+        });
 
-  double sine_wave_w = M_PI * 2 / sine_wave_period_s;
+    // Publishers: one per joint
+    std::vector<rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr> joint_publishers(NUM_JOINTS);
+    for (int i = 0; i < NUM_JOINTS; ++i) {
+        joint_publishers[i] = node->create_publisher<std_msgs::msg::Float64>("/joint" + std::to_string(i+1) + "/cmd_vel", 10);
+    }
 
-  node->declare_parameter<double>("sine_wave_amplitude", DEFAULT_SINE_WAVE_AMPLITUDE);
-  double sine_wave_amplitude = node->get_parameter("sine_wave_amplitude").as_double();
+    // Jacobian client
+    auto jacobian_client = node->create_client<GetJacobian>("get_jacobian");
+    while (!jacobian_client->wait_for_service(std::chrono::seconds(1))) {
+        RCLCPP_INFO(node->get_logger(), "Waiting for Jacobian service...");
+    }
 
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr publisher =
-      node->create_publisher<std_msgs::msg::Float64>("/joint1/cmd_vel", 10);
+    rclcpp::WallRate rate(100); // 100 Hz
+    auto t0 = node->get_clock()->now();
 
-  auto t0 = node->get_clock()->now();
-  bool initialized = false;
+    while (rclcpp::ok()) {
+        rclcpp::spin_some(node);
+        if (!received_joint_state) continue;
 
-  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr subscription =
-      node->create_subscription<sensor_msgs::msg::JointState>(
-          "/joint_states_no_effort", 10,
-          [node, &t0, &initialized](sensor_msgs::msg::JointState::UniquePtr msg) -> void {
-            if (!initialized && fabs(msg->position[0]) < 1e-4)
-            {
-              t0 = node->get_clock()->now();
-            }
-            else
-            {
-              initialized = true;
-            }
-          });
+        // Call Jacobian service
+        auto request = std::make_shared<GetJacobian::Request>();
+        auto result = jacobian_client->async_send_request(request);
+        if (rclcpp::spin_until_future_complete(node, result, std::chrono::milliseconds(100)) !=
+            rclcpp::FutureReturnCode::SUCCESS) {
+            RCLCPP_WARN(node->get_logger(), "Failed to call Jacobian service");
+            continue;
+        }
 
-  rclcpp::WallRate loop_rate(cycle_frequency_hz);
+        auto response = result.get();
+        Eigen::MatrixXd J(response->rows, response->cols);
+        Eigen::Map<Eigen::VectorXd>(J.data(), J.size()) = Eigen::Map<Eigen::VectorXd>(response->jacobian.data(), response->jacobian.size());
 
-  double derivative_amplitude = sine_wave_w*sine_wave_amplitude;
+        // Compute desired end-effector velocity for YZ circle
+        double dt = (node->get_clock()->now() - t0).seconds();
+        double omega = 2.0 * M_PI * FREQUENCY;
 
-  while (rclcpp::ok())
-  {
-    rclcpp::Duration dt = node->get_clock()->now() - t0;
+        Eigen::Vector3d vel_xyz( -RADIUS * omega * sin(omega*dt),0, RADIUS * omega * cos(omega*dt));
+        Eigen::VectorXd vel6d(6);
+        vel6d << vel_xyz, Eigen::Vector3d::Zero(); // no rotation
 
-    auto message = std_msgs::msg::Float64();
-    message.data = derivative_amplitude * cos(sine_wave_w * dt.seconds());
+        // Compute joint velocities via pseudoinverse
+        Eigen::VectorXd q_dot = J.completeOrthogonalDecomposition().pseudoInverse() * vel6d;
 
-    publisher->publish(message);
+        // Publish each joint velocity on its topic
+        for (int i = 0; i < NUM_JOINTS; ++i) {
+            std_msgs::msg::Float64 msg;
+            msg.data = q_dot[i];
+            joint_publishers[i]->publish(msg);
+        }
 
-    rclcpp::spin_some(node);
-    loop_rate.sleep();
-  }
+        rate.sleep();
+    }
 
-  rclcpp::shutdown();
-  return 0;
+    rclcpp::shutdown();
+    return 0;
 }

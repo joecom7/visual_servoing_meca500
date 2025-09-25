@@ -43,7 +43,8 @@ def launch_sim(context, *args, **kwargs):
 
     # Genero l'URDF a runtime e lo scrivo su file
     urdf_string = xacro.process_file(
-        xacro_file, mappings={"camera_update_rate": str(camera_update_rate)}  # deve essere stringa
+        xacro_file, mappings={"camera_update_rate": str(camera_update_rate),
+                              "use_package_reference" : str(False)}  # deve essere stringa
     ).toxml()
 
     with open(urdf_file, "w") as f:

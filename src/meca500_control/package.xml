@@ -10,6 +10,8 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>meca500_interfaces</depend>
+  <depend>tf2</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
