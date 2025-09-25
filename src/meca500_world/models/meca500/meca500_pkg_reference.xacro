@@ -1,9 +1,198 @@
 <?xml version="1.0" encoding="utf-8"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="firefighter">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="meca500">
 
   <xacro:arg name="camera_update_rate" default="60"/>
   <xacro:property name="camera_update_rate" value="$(arg camera_update_rate)"/>
 
+  <xacro:arg name="use_package_reference" default="false"/>
+  <xacro:property name="mesh_prefix" value="$(arg use_package_reference)"/>
+  <xacro:if value="$(arg use_package_reference)">
+    <xacro:property name="mesh_prefix" value="package://meca500_world/"/>
+  </xacro:if>
+  <xacro:unless value="$(arg use_package_reference)">
+    <xacro:property name="mesh_prefix" value="../../"/>
+  </xacro:unless>
+
+  <xacro:macro name="sensor_d435i" params="parent
+                                          name:=camera
+                                          topics_ns:=camera
+                                          visualize:=false
+                                          align_depth:=false
+                                          enable_pointCloud:=false
+
+                                          unite_imu_method:=false
+                                          accel_fps:=250
+                                          gyro_fps:=400
+
+                                          clip_distance:=-1.0
+                                          depth_width:=1280
+                                          depth_height:=720
+                                          depth_fps:=30
+
+                                          infra_width:=640
+                                          infra_height:=480
+                                          infra_fps:=30
+
+                                          color_width:=1920
+                                          color_height:=1080
+                                          color_fps:=30
+
+                                          *origin">
+    <xacro:property name="M_PI" value="3.1415926535897931"/>
+
+    <!-- The following values are approximate, and the camera node
+     publishing TF values with actual calibrated camera extrinsic values -->
+    <xacro:property name="d435i_cam_depth_to_left_ir_offset" value="0.0"/>
+    <xacro:property name="d435i_cam_depth_to_right_ir_offset" value="-0.050"/>
+    <xacro:property name="d435i_cam_depth_to_color_offset" value="0.015"/>
+
+    <!-- The following values model the aluminum peripherial case for the
+  	D435 camera, with the camera joint represented by the actual
+  	peripherial camera tripod mount -->
+    <xacro:property name="d435i_cam_width" value="0.090"/>
+    <xacro:property name="d435i_cam_height" value="0.025"/>
+    <xacro:property name="d435i_cam_depth" value="0.02505"/>
+    <xacro:property name="d435i_cam_mount_from_center_offset" value="0.0149"/>
+
+    <!-- The following offset is relative the the physical D435 camera peripherial
+  	camera tripod mount -->
+    <xacro:property name="d435i_cam_depth_px" value="${d435i_cam_mount_from_center_offset}"/>
+    <xacro:property name="d435i_cam_depth_py" value="0.0175"/>
+    <xacro:property name="d435i_cam_depth_pz" value="${d435i_cam_height/2}"/>
+
+    <material name="${name}_aluminum">
+	  <color rgba="0.5 0.5 0.5 1"/>
+    </material>
+
+
+    <!-- camera body, with origin at bottom screw mount -->
+    <joint name="${name}_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent}"/>
+      <child link="${name}_bottom_screw_frame"/>
+    </joint>
+    <link name="${name}_bottom_screw_frame"/>
+
+    <joint name="${name}_link_joint" type="fixed">
+      <origin xyz="0 ${d435i_cam_depth_py} ${d435i_cam_depth_pz}" rpy="0 0 0"/>
+      <parent link="${name}_bottom_screw_frame"/>
+      <child link="${name}_link"/>
+    </joint>
+
+    <link name="${name}_link">
+      <visual>
+      <origin xyz="${d435i_cam_mount_from_center_offset} ${-d435i_cam_depth_py} 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
+        <geometry>
+          <mesh filename="package://meca500_world/meshes/d435.dae"/>
+        </geometry>
+        <material name="${name}_aluminum"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${-d435i_cam_depth_py} 0" rpy="0 0 0"/>
+        <geometry>
+        <box size="${d435i_cam_depth} ${d435i_cam_width} ${d435i_cam_height}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <!-- The following are not reliable values, and should not be used for modeling -->
+        <mass value="0.564"/>
+        <origin xyz="0 0 0"/>
+        <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257"/>
+      </inertial>
+    </link>
+
+    <!-- camera depth joints and links -->
+    <joint name="${name}_depth_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="${name}_link"/>
+      <child link="${name}_depth_frame"/>
+    </joint>
+    <link name="${name}_depth_frame"/>
+
+    <joint name="${name}_depth_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}"/>
+      <parent link="${name}_depth_frame"/>
+      <child link="${name}_depth_optical_frame"/>
+    </joint>
+    <link name="${name}_depth_optical_frame"/>
+
+    <!-- camera left IR joints and links -->
+    <joint name="${name}_left_ir_joint" type="fixed">
+      <origin xyz="0 ${d435i_cam_depth_to_left_ir_offset} 0" rpy="0 0 0"/>
+      <parent link="${name}_depth_frame"/>
+      <child link="${name}_left_ir_frame"/>
+    </joint>
+    <link name="${name}_left_ir_frame"/>
+
+    <joint name="${name}_left_ir_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}"/>
+      <parent link="${name}_left_ir_frame"/>
+      <child link="${name}_left_ir_optical_frame"/>
+    </joint>
+    <link name="${name}_left_ir_optical_frame"/>
+
+    <!-- camera right IR joints and links -->
+    <joint name="${name}_right_ir_joint" type="fixed">
+      <origin xyz="0 ${d435i_cam_depth_to_right_ir_offset} 0" rpy="0 0 0"/>
+      <parent link="${name}_depth_frame"/>
+      <child link="${name}_right_ir_frame"/>
+    </joint>
+    <link name="${name}_right_ir_frame"/>
+
+    <joint name="${name}_right_ir_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}"/>
+      <parent link="${name}_right_ir_frame"/>
+      <child link="${name}_right_ir_optical_frame"/>
+    </joint>
+    <link name="${name}_right_ir_optical_frame"/>
+
+    <!-- camera color joints and links -->
+    <joint name="${name}_color_joint" type="fixed">
+      <origin xyz="0 ${d435i_cam_depth_to_color_offset} 0" rpy="0 0 0"/>
+      <parent link="${name}_depth_frame"/>
+      <child link="${name}_color_frame"/>
+    </joint>
+    <link name="${name}_color_frame"/>
+
+    <joint name="${name}_color_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}"/>
+      <parent link="${name}_color_frame"/>
+      <child link="${name}_color_optical_frame"/>
+    </joint>
+    <link name="${name}_color_optical_frame"/>
+
+    <!-- camera accel joints and links -->
+    <joint name="${name}_accel_joint" type="fixed">
+      <origin xyz="-0.00174 0.00552 0.0176" rpy="0 0 0"/>
+      <parent link="${name}_link"/>
+      <child link="${name}_accel_frame"/>
+    </joint>
+    <link name="${name}_accel_frame"/>
+
+    <joint name="${name}_accel_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}"/>
+      <parent link="${name}_accel_frame"/>
+      <child link="${name}_accel_optical_frame"/>
+    </joint>
+    <link name="${name}_accel_optical_frame"/>
+
+    <!-- camera gyro joints and links -->
+    <joint name="${name}_gyro_joint" type="fixed">
+      <origin xyz="-0.00174 0.00552 0.0176" rpy="0 0 0"/>
+      <parent link="${name}_link"/>
+      <child link="${name}_gyro_frame"/>
+    </joint>
+    <link name="${name}_gyro_frame"/>
+
+    <joint name="${name}_gyro_optical_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}"/>
+      <parent link="${name}_gyro_frame"/>
+      <child link="${name}_gyro_optical_frame"/>
+    </joint>
+    <link name="${name}_gyro_optical_frame"/>
+
+  </xacro:macro>
+  
   <!-- Base link is the center of the robot's bottom plate -->
   <link name="meca_base_link">
     <visual>
@@ -198,123 +387,69 @@
     <limit effort="10.0" lower="-3.14159" upper="3.14159" velocity="8.72665"/>
   </joint>
 
-  <gazebo>
-      <plugin
-        filename="gz-sim-joint-state-publisher-system"
-        name="gz::sim::systems::JointStatePublisher">
-        <joint_name>meca_axis_1_joint</joint_name>
-        <joint_name>meca_axis_2_joint</joint_name>
-        <joint_name>meca_axis_3_joint</joint_name>
-        <joint_name>meca_axis_4_joint</joint_name>
-        <joint_name>meca_axis_5_joint</joint_name>
-        <joint_name>meca_axis_6_joint</joint_name>
-      </plugin>
-  </gazebo>
+  
 
-  <gazebo>
-    <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_1_joint</joint_name>
-     <initial_velocity>1.0</initial_velocity>
-    </plugin>
-  </gazebo>
-  <gazebo>
-    <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_1_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
-    </plugin>
-  </gazebo>
-  <gazebo>
-    <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_2_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
-    </plugin>
-  </gazebo>
-  <gazebo>
-    <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_3_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
-    </plugin>
-  </gazebo>
-  <gazebo>
-    <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_4_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
-    </plugin>
-  </gazebo>
-  <gazebo>
-    <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_5_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
-    </plugin>
-  </gazebo>
-  <gazebo>
-    <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_6_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
-    </plugin>
-  </gazebo>
-
-  <link name="camera_link">
+  <link name="camera_mount_link">
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://meca500_world/meshes/kinect.dae"/> <!-- modello 3D della Kinect -->
-      <!-- puoi scalare se necessario -->
-      <scale>0.001 0.001 0.001</scale> 
+      <mesh filename="package://meca500_world/meshes/aggancio_robot_visual.stl" scale="0.001 0.001 0.001"/>
     </geometry>
+    <material name="yellow_light">
+      <color rgba="1.0 1.0 0.6 1.0"/>
+    </material>
   </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="package://meca500_world/meshes/kinect.dae"/> <!-- collisione semplificata -->
-      <scale>0.001 0.001 0.001</scale>
+      <mesh filename="package://meca500_world/meshes/aggancio_robot_collision.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
   <inertial>
-    <mass value="0.5"/> <!-- peso realistico della camera -->
+    <mass value="0.2"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <inertia ixx="0.0005" iyy="0.0005" izz="0.0005" ixy="0" ixz="0" iyz="0"/>
+    <inertia ixx="0.0002" iyy="0.0002" izz="0.0002" ixy="0" ixz="0" iyz="0"/>
   </inertial>
 </link>
 
-<joint name="camera_joint" type="fixed">
+<!-- Joint fisso tra polso e supporto -->
+<joint name="camera_mount_joint" type="fixed">
   <parent link="meca_axis_6_link"/>
-  <child link="camera_link"/>
-  <origin xyz="0 0 0.1" rpy="0 0 0"/> <!-- sposta la telecamera sopra il polso -->
+  <child link="camera_mount_link"/>
+  <origin xyz="0 0 0" rpy="1.5708 0 0"/>
 </joint>
 
+<link name="camera_adapter_link">
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://meca500_world/meshes/aggancio_camera_visual.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="beige_light">
+      <color rgba="0.96 0.87 0.70 1.0"/>
+    </material>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://meca500_world/meshes/aggancio_camera_collision.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+  <inertial>
+    <mass value="0.05"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <inertia ixx="5e-05" iyy="5e-05" izz="5e-05" ixy="0" ixz="0" iyz="0"/>
+  </inertial>
+</link>
 
-  <gazebo reference="camera_link">
-  <sensor name="rgbd_camera" type="rgbd_camera">
-    <update_rate>${camera_update_rate}</update_rate>
-    <topic>rgbd_camera</topic>
-    <camera>
-      <horizontal_fov>0.995</horizontal_fov>
-      <image>
-        <width>640</width>
-        <height>480</height>
-        <format>R8G8B8</format>
-      </image>
-      <clip>
-        <near>0.8</near>
-        <far>6.0</far>
-      </clip>
-    </camera>
-  </sensor>
-  <static>false</static> <!-- deve muoversi con il robot -->
-</gazebo>
+<!-- Joint fisso tra camera_mount_link e camera_adapter_link -->
+<joint name="camera_adapter_joint" type="fixed">
+  <parent link="camera_mount_link"/>
+  <child link="camera_adapter_link"/>
+  <origin xyz="0.017 0.0356 0" rpy="-1.5708 0 0"/>
+</joint>
+
+<xacro:sensor_d435i parent="camera_adapter_link" name="D435i_camera" topics_ns="D435i_camera"> 
+    <origin xyz="0.02 0.0 -0.01" rpy="0.0 0.0 0.0"/>
+  </xacro:sensor_d435i>
 </robot>
