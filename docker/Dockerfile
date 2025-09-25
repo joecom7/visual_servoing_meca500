@@ -9,6 +9,10 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/p
 
 RUN apt-get update && apt-get install -y  gz-harmonic ros-jazzy-ros-gz-sim ros-jazzy-ros-gz-image ros-jazzy-cv-bridge ros-jazzy-moveit python3-venv virtualenv
 
+COPY docker/entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]
+
 # Create a virtual environment in /venv
 RUN virtualenv -p python3 /venv
 
@@ -22,7 +26,3 @@ COPY requirements.txt /requirements.txt
 
 RUN /venv/bin/pip install --upgrade pip && \
     /venv/bin/pip install -r /requirements.txt
-
-COPY docker/entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["bash"]
