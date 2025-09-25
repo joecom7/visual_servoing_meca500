@@ -3,7 +3,7 @@
     <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
 
     <!-- Import meca500 urdf file -->
-    <xacro:include filename="$(find meca500_world)/models/meca500/meca500_pkg_reference.xacro" />
+    <xacro:include filename="$(find meca500_world)/models/meca500/meca500.xacro" />
 
     <!-- Import control_xacro -->
     <xacro:include filename="meca500.ros2_control.xacro" />

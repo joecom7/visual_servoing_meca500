@@ -1,25 +1,23 @@
 moveit_setup_assistant_config:
   urdf:
     package: meca500_world
-    relative_path: models/meca500/meca500_pkg_reference.xacro
+    relative_path: models/meca500/meca500.xacro
   srdf:
     relative_path: config/meca500.srdf
   package_settings:
     author_name: Giovanni Francesco Comune
     author_email: giovannifrancesco.comune@studenti.unicampania.it
-    generated_timestamp: 1758799134
+    generated_timestamp: 1758806447
   control_xacro:
     command:
-      - velocity
+      []
     state:
-      - position
-      - velocity
+      []
   modified_urdf:
     xacros:
       - control_xacro
   control_xacro:
     command:
-      - velocity
+      []
     state:
-      - position
-      - velocity
+      []
