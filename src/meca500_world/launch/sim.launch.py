@@ -173,6 +173,12 @@ def launch_sim(context, *args, **kwargs):
         ],
     )
 
+    joint_velocity_bridge = Node(
+        package="meca500_world",
+        executable="joint_velocity_bridge",
+        output="screen"
+    )
+
     return [
         declare_world_cmd,
         declare_file_cmd,
@@ -184,6 +190,7 @@ def launch_sim(context, *args, **kwargs):
         load_nodes,
         robot_state,
         bridge,
+        joint_velocity_bridge
     ]
 
 

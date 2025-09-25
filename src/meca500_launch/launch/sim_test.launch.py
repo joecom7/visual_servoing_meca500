@@ -51,8 +51,8 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": 1000,
-                "circle_radius": 0.05,
-                "circle_period_s": 1.0,
+                "circle_radius": 0.02,
+                "circle_period_s": 2.0,
             }
         ],
     )

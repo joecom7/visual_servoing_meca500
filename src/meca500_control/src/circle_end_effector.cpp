@@ -1,5 +1,4 @@
 #include <rclcpp/rclcpp.hpp>
-#include "std_msgs/msg/float64.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "meca500_interfaces/srv/get_jacobian.hpp"
 #include <Eigen/Dense>
@@ -40,11 +39,8 @@ int main(int argc, char** argv)
             received_joint_state = true;
         });
 
-    // Publishers: one per joint
-    std::vector<rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr> joint_publishers(NUM_JOINTS);
-    for (int i = 0; i < NUM_JOINTS; ++i) {
-        joint_publishers[i] = node->create_publisher<std_msgs::msg::Float64>("/joint" + std::to_string(i+1) + "/cmd_vel", 10);
-    }
+    // Publisher: one standard JointState for velocities
+    auto vel_pub = node->create_publisher<sensor_msgs::msg::JointState>("/joint_velocity_cmd", 10);
 
     // Jacobian client
     auto jacobian_client = node->create_client<GetJacobian>("get_jacobian");
@@ -76,19 +72,25 @@ int main(int argc, char** argv)
         double dt = (node->get_clock()->now() - t0).seconds();
         double omega = 2.0 * M_PI / circle_period_s;
 
-        Eigen::Vector3d vel_xyz( -circle_radius * omega * sin(omega*dt),0, circle_radius * omega * cos(omega*dt));
+        Eigen::Vector3d vel_xyz(-circle_radius * omega * sin(omega*dt), 0, circle_radius * omega * cos(omega*dt));
         Eigen::VectorXd vel6d(NUM_JOINTS);
         vel6d << vel_xyz, Eigen::Vector3d::Zero(); // no rotation
 
         // Compute joint velocities via pseudoinverse
         Eigen::VectorXd q_dot = J.completeOrthogonalDecomposition().pseudoInverse() * vel6d;
 
-        // Publish each joint velocity on its topic
+        // Publish joint velocities as a single JointState message
+        sensor_msgs::msg::JointState vel_msg;
+        vel_msg.header.stamp = node->get_clock()->now();
+        vel_msg.name.resize(NUM_JOINTS);
+        vel_msg.velocity.resize(NUM_JOINTS);
+
         for (int i = 0; i < NUM_JOINTS; ++i) {
-            std_msgs::msg::Float64 msg;
-            msg.data = q_dot[i];
-            joint_publishers[i]->publish(msg);
+            vel_msg.name[i] = "meca_axis_" + std::to_string(i+1) + "_joint";
+            vel_msg.velocity[i] = q_dot[i];
         }
+
+        vel_pub->publish(vel_msg);
 
         rate.sleep();
     }
