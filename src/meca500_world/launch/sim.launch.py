@@ -6,7 +6,7 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
+# Unless required by applicable law or agreed to in writing,
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
@@ -29,7 +29,6 @@ import xacro
 
 def launch_sim(context, *args, **kwargs):
 
-    # ''use_sim_time'' is used to have ros2 use /clock topic for the time source
     use_sim_time = LaunchConfiguration("use_sim_time", default="true")
     pkg_ros_gz_sim = get_package_share_directory("ros_gz_sim")
     pkg_meca500_world = get_package_share_directory("meca500_world")
@@ -39,12 +38,24 @@ def launch_sim(context, *args, **kwargs):
     # Path del file URDF generato
     urdf_file = os.path.join(pkg_meca500_world, "models", "meca500", "meca500.urdf")
 
+    # Parametri da launch
     camera_update_rate = float(LaunchConfiguration('camera_update_rate').perform(context))
+    table_height = float(LaunchConfiguration("table_height").perform(context))
+    table_thickness = float(LaunchConfiguration("table_thickness").perform(context))
+    meca_offset_x = float(LaunchConfiguration("meca_offset_x").perform(context))
+    meca_offset_y = float(LaunchConfiguration("meca_offset_y").perform(context))
 
     # Genero l'URDF a runtime e lo scrivo su file
     urdf_string = xacro.process_file(
-        xacro_file, mappings={"camera_update_rate": str(camera_update_rate),
-                              "use_package_reference" : str(False)}  # deve essere stringa
+        xacro_file,
+        mappings={
+            "camera_update_rate": str(camera_update_rate),
+            "use_package_reference": str(False),
+            "table_height": str(table_height),
+            "table_thickness": str(table_thickness),
+            "meca_offset_x": str(meca_offset_x),
+            "meca_offset_y": str(meca_offset_y),
+        }
     ).toxml()
 
     with open(urdf_file, "w") as f:
@@ -58,7 +69,6 @@ def launch_sim(context, *args, **kwargs):
         default_value="true",
         description="Use simulation (Gazebo) clock if true",
     )
-
 
     robot_state = Node(
         package="robot_state_publisher",
@@ -96,6 +106,7 @@ def launch_sim(context, *args, **kwargs):
         ],
         output="screen",
     )
+
     world = LaunchConfiguration("world")
     file = LaunchConfiguration("file")
     model_string = LaunchConfiguration("model_string")
@@ -104,7 +115,7 @@ def launch_sim(context, *args, **kwargs):
     allow_renaming = LaunchConfiguration("allow_renaming")
     x = LaunchConfiguration("x", default="0.0")
     y = LaunchConfiguration("y", default="0.0")
-    z = LaunchConfiguration("z", default="0.75")
+    z = LaunchConfiguration("z", default="0.0")
     roll = LaunchConfiguration("R", default="0.0")
     pitch = LaunchConfiguration("P", default="0.0")
     yaw = LaunchConfiguration("Y", default="0.0")
@@ -162,21 +173,6 @@ def launch_sim(context, *args, **kwargs):
         ],
     )
 
-    table_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_meca500_world, "launch", "table.launch.py")
-        ),
-        launch_arguments={
-            "world": LaunchConfiguration("world"),
-            "table_name": "table1",
-            "x": "0.0",
-            "y": "0.0",
-            "height": "0.75",
-            "width": "0.8",
-            "depth": "1.2",
-        }.items(),
-    )
-
     return [
         declare_world_cmd,
         declare_file_cmd,
@@ -188,7 +184,6 @@ def launch_sim(context, *args, **kwargs):
         load_nodes,
         robot_state,
         bridge,
-        table_launch,
     ]
 
 
@@ -198,7 +193,26 @@ def generate_launch_description():
     declare_camera_update_rate = DeclareLaunchArgument(
         "camera_update_rate", default_value="60.0"
     )
+    declare_table_height = DeclareLaunchArgument(
+        "table_height", default_value="0.75", description="Altezza del tavolo"
+    )
+    declare_table_thickness = DeclareLaunchArgument(
+        "table_thickness", default_value="0.05", description="Spessore del piano del tavolo"
+    )
+    declare_meca_offset_x = DeclareLaunchArgument(
+        "meca_offset_x", default_value="0.0", description="Offset X del Meca sul tavolo"
+    )
+    declare_meca_offset_y = DeclareLaunchArgument(
+        "meca_offset_y", default_value="0.0", description="Offset Y del Meca sul tavolo"
+    )
 
     return LaunchDescription(
-        [declare_camera_update_rate, OpaqueFunction(function=launch_sim)]
+        [
+            declare_camera_update_rate,
+            declare_table_height,
+            declare_table_thickness,
+            declare_meca_offset_x,
+            declare_meca_offset_y,
+            OpaqueFunction(function=launch_sim),
+        ]
     )

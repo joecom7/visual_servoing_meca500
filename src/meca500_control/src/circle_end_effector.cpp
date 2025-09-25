@@ -8,14 +8,25 @@
 
 using GetJacobian = meca500_interfaces::srv::GetJacobian;
 
-const double RADIUS = 0.05; // 5 cm circle
-const double FREQUENCY = 0.2; // Hz
-const int NUM_JOINTS = 6; // Adjust to your robot
+#define NUM_JOINTS 6
+
+const int DEFAULT_CYCLE_FREQUENCY_HZ = 1000;
+const double DEFAULT_CIRCLE_RADIUS = 0.05; // 5 cm circle
+const double DEFAULT_CIRCLE_PERIOD = 3;
 
 int main(int argc, char** argv)
 {
     rclcpp::init(argc, argv);
     auto node = std::make_shared<rclcpp::Node>("circle_yz_node");
+
+    node->declare_parameter<int>("cycle_frequency_hz", DEFAULT_CYCLE_FREQUENCY_HZ);
+    int cycle_frequency_hz = node->get_parameter("cycle_frequency_hz").as_int();
+
+    node->declare_parameter<double>("circle_radius", DEFAULT_CIRCLE_RADIUS);
+    double circle_radius = node->get_parameter("circle_radius").as_double();
+
+    node->declare_parameter<double>("circle_period_s", DEFAULT_CIRCLE_PERIOD);
+    double circle_period_s = node->get_parameter("circle_period_s").as_double();
 
     // Subscribers
     std::vector<double> current_joint_positions(NUM_JOINTS, 0.0);
@@ -41,7 +52,7 @@ int main(int argc, char** argv)
         RCLCPP_INFO(node->get_logger(), "Waiting for Jacobian service...");
     }
 
-    rclcpp::WallRate rate(100); // 100 Hz
+    rclcpp::WallRate rate(cycle_frequency_hz);
     auto t0 = node->get_clock()->now();
 
     while (rclcpp::ok()) {
@@ -63,10 +74,10 @@ int main(int argc, char** argv)
 
         // Compute desired end-effector velocity for YZ circle
         double dt = (node->get_clock()->now() - t0).seconds();
-        double omega = 2.0 * M_PI * FREQUENCY;
+        double omega = 2.0 * M_PI / circle_period_s;
 
-        Eigen::Vector3d vel_xyz( -RADIUS * omega * sin(omega*dt),0, RADIUS * omega * cos(omega*dt));
-        Eigen::VectorXd vel6d(6);
+        Eigen::Vector3d vel_xyz( -circle_radius * omega * sin(omega*dt),0, circle_radius * omega * cos(omega*dt));
+        Eigen::VectorXd vel6d(NUM_JOINTS);
         vel6d << vel_xyz, Eigen::Vector3d::Zero(); // no rotation
 
         // Compute joint velocities via pseudoinverse

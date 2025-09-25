@@ -1,20 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="meca500">
 
-  <xacro:arg name="camera_update_rate" default="60"/>
-  <xacro:property name="camera_update_rate" value="$(arg camera_update_rate)"/>
+  <xacro:arg name="camera_update_rate" default="60" />
+  <xacro:property name="camera_update_rate" value="$(arg camera_update_rate)" />
+  <xacro:property name="table_height" default="0.75" />
+  <xacro:property name="table_thickness" default="0.05" />
+  <xacro:property name="table_size_x" default="0.8" />
+  <xacro:property name="table_size_y" default="1.2" />
+  <xacro:property name="table_leg_size" default="0.05" />
+  <xacro:property name="table_leg_height" value="${table_height - table_thickness}" />
 
+  <!-- Offset del robot sul tavolo -->
+  <xacro:property name="meca_offset_x" default="0.0" />
+  <xacro:property name="meca_offset_y" default="0.0" />
 
-  <xacro:arg name="use_package_reference" default="true"/>
-  <xacro:property name="mesh_prefix" value="$(arg use_package_reference)"/>
+  <xacro:arg name="use_package_reference" default="true" />
+  <xacro:property name="mesh_prefix" value="$(arg use_package_reference)" />
   <xacro:if value="$(arg use_package_reference)">
-    <xacro:property name="mesh_prefix" value="package://meca500_world/"/>
+    <xacro:property name="mesh_prefix" value="package://meca500_world/" />
   </xacro:if>
   <xacro:unless value="$(arg use_package_reference)">
-    <xacro:property name="mesh_prefix" value="../../"/>
+    <xacro:property name="mesh_prefix" value="../../" />
   </xacro:unless>
 
-  <xacro:macro name="sensor_d435i" params="parent
+  <xacro:macro name="sensor_d435i"
+    params="parent
                                           name:=camera
                                           topics_ns:=camera
                                           visualize:=false
@@ -39,99 +49,96 @@
                                           color_fps:=30
 
                                           *origin">
-    <xacro:property name="M_PI" value="3.1415926535897931"/>
+    <xacro:property name="M_PI" value="3.1415926535897931" />
 
     <!-- The following values model the aluminum peripherial case for the
   	D435 camera, with the camera joint represented by the actual
   	peripherial camera tripod mount -->
-    <xacro:property name="d435i_cam_width" value="0.090"/>
-    <xacro:property name="d435i_cam_height" value="0.025"/>
-    <xacro:property name="d435i_cam_depth" value="0.02505"/>
-    <xacro:property name="d435i_cam_mount_from_center_offset" value="0.0149"/>
+    <xacro:property name="d435i_cam_width" value="0.090" />
+    <xacro:property name="d435i_cam_height" value="0.025" />
+    <xacro:property name="d435i_cam_depth" value="0.02505" />
+    <xacro:property name="d435i_cam_mount_from_center_offset" value="0.0149" />
 
     <!-- The following offset is relative the the physical D435 camera peripherial
   	camera tripod mount -->
-    <xacro:property name="d435i_cam_depth_px" value="${d435i_cam_mount_from_center_offset}"/>
-    <xacro:property name="d435i_cam_depth_py" value="0.0175"/>
-    <xacro:property name="d435i_cam_depth_pz" value="${d435i_cam_height/2}"/>
+    <xacro:property name="d435i_cam_depth_px" value="${d435i_cam_mount_from_center_offset}" />
+    <xacro:property name="d435i_cam_depth_py" value="0.0175" />
+    <xacro:property name="d435i_cam_depth_pz" value="${d435i_cam_height/2}" />
 
     <material name="${name}_aluminum">
-	  <color rgba="0.5 0.5 0.5 1"/>
+      <color rgba="0.5 0.5 0.5 1" />
     </material>
 
 
     <!-- camera body, with origin at bottom screw mount -->
     <joint name="${name}_joint" type="fixed">
-      <xacro:insert_block name="origin"/>
-      <parent link="${parent}"/>
-      <child link="${name}_bottom_screw_frame"/>
+      <xacro:insert_block name="origin" />
+      <parent link="${parent}" />
+      <child link="${name}_bottom_screw_frame" />
     </joint>
-    <link name="${name}_bottom_screw_frame"/>
+    <link name="${name}_bottom_screw_frame" />
 
     <joint name="${name}_link_joint" type="fixed">
-      <origin xyz="0 ${d435i_cam_depth_py} ${d435i_cam_depth_pz}" rpy="0 0 0"/>
-      <parent link="${name}_bottom_screw_frame"/>
-      <child link="${name}_link"/>
+      <origin xyz="0 ${d435i_cam_depth_py} ${d435i_cam_depth_pz}" rpy="0 0 0" />
+      <parent link="${name}_bottom_screw_frame" />
+      <child link="${name}_link" />
     </joint>
 
     <link name="${name}_link">
       <visual>
-      <origin xyz="${d435i_cam_mount_from_center_offset} ${-d435i_cam_depth_py} 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
+        <origin xyz="${d435i_cam_mount_from_center_offset} ${-d435i_cam_depth_py} 0"
+          rpy="${M_PI/2} 0 ${M_PI/2}" />
         <geometry>
-          <mesh filename="${mesh_prefix}meshes/d435.dae"/>
+          <mesh filename="${mesh_prefix}meshes/d435.dae" />
         </geometry>
-        <material name="${name}_aluminum"/>
+        <material name="${name}_aluminum" />
       </visual>
       <collision>
-        <origin xyz="0 ${-d435i_cam_depth_py} 0" rpy="0 0 0"/>
+        <origin xyz="0 ${-d435i_cam_depth_py} 0" rpy="0 0 0" />
         <geometry>
-        <box size="${d435i_cam_depth} ${d435i_cam_width} ${d435i_cam_height}"/>
+          <box size="${d435i_cam_depth} ${d435i_cam_width} ${d435i_cam_height}" />
         </geometry>
       </collision>
       <inertial>
         <!-- The following are not reliable values, and should not be used for modeling -->
-        <mass value="0.564"/>
-        <origin xyz="0 0 0"/>
-        <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257"/>
+        <mass value="0.564" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257" />
       </inertial>
     </link>
 
     <!-- Realsense Gazebo Plugin -->
     <xacro:gazebo_d435i camera_name="${name}"
-                        topics_ns="${topics_ns}"
-                        reference_link="${name}_link"
-
-                        depth_optical_frame="${name}_depth_optical_frame"
-                        depth_width="${depth_width}"
-                        depth_height="${depth_height}"
-                        depth_fps="${depth_fps}"
-
-                        color_optical_frame="${name}_color_optical_frame"
-                        color_width="${color_width}"
-                        color_height="${color_height}"
-                        color_fps="${color_fps}"
-
-                        infrared1_optical_frame="${name}_left_ir_optical_frame"
-                        infrared2_optical_frame="${name}_right_ir_optical_frame"
-                        infra_width="${infra_width}"
-                        infra_height="${infra_height}"
-                        infra_fps="${infra_fps}"
-
-                        accel_optical_frame="${name}_accel_optical_frame"
-                        gyro_optical_frame="${name}_gyro_optical_frame"
-                        accel_fps="${accel_fps}"
-                        gyro_fps="${gyro_fps}"
-
-                        enable_pointCloud="${enable_pointCloud}"
-                        unite_imu_method="${unite_imu_method}"
-                        clip_distance="${clip_distance}"
-                        align_depth="${align_depth}"
-                        visualize="${visualize}"
+      topics_ns="${topics_ns}"
+      reference_link="${name}_link"
+      depth_optical_frame="${name}_depth_optical_frame"
+      depth_width="${depth_width}"
+      depth_height="${depth_height}"
+      depth_fps="${depth_fps}"
+      color_optical_frame="${name}_color_optical_frame"
+      color_width="${color_width}"
+      color_height="${color_height}"
+      color_fps="${color_fps}"
+      infrared1_optical_frame="${name}_left_ir_optical_frame"
+      infrared2_optical_frame="${name}_right_ir_optical_frame"
+      infra_width="${infra_width}"
+      infra_height="${infra_height}"
+      infra_fps="${infra_fps}"
+      accel_optical_frame="${name}_accel_optical_frame"
+      gyro_optical_frame="${name}_gyro_optical_frame"
+      accel_fps="${accel_fps}"
+      gyro_fps="${gyro_fps}"
+      enable_pointCloud="${enable_pointCloud}"
+      unite_imu_method="${unite_imu_method}"
+      clip_distance="${clip_distance}"
+      align_depth="${align_depth}"
+      visualize="${visualize}"
     />
 
   </xacro:macro>
 
-   <xacro:macro name="gazebo_d435i" params=" reference_link
+  <xacro:macro name="gazebo_d435i"
+    params=" reference_link
                                             camera_name:=camera
                                             topics_ns:=camera
 
@@ -165,7 +172,7 @@
                                             ">
 
     <!-- Load parameters to model's main link-->
-    <xacro:property name="deg_to_rad" value="0.01745329251994329577"/>
+    <xacro:property name="deg_to_rad" value="0.01745329251994329577" />
     <gazebo reference="${reference_link}">
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
@@ -219,332 +226,393 @@
     </gazebo>
 
   </xacro:macro>
-  
+
+  <link name="table_link">
+    <!-- Piano -->
+    <visual>
+      <origin xyz="0 0 ${table_height - table_thickness/2.0}" rpy="0 0 0" />
+      <geometry>
+        <box size="${table_size_x} ${table_size_y} ${table_thickness}" />
+      </geometry>
+      <material name="wood">
+        <color rgba="0.6 0.3 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${table_height - table_thickness/2.0}" rpy="0 0 0" />
+      <geometry>
+        <box size="${table_size_x} ${table_size_y} ${table_thickness}" />
+      </geometry>
+    </collision>
+
+    <!-- Quattro gambe -->
+    <xacro:property name="table_leg_height" value="${table_height - table_thickness}" />
+
+    <xacro:macro name="table_leg" params="x y">
+      <visual>
+        <origin xyz="${x} ${y} ${table_leg_height/2.0}" rpy="0 0 0" />
+        <geometry>
+          <box size="${table_leg_size} ${table_leg_size} ${table_leg_height}" />
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="${x} ${y} ${table_leg_height/2.0}" rpy="0 0 0" />
+        <geometry>
+          <box size="${table_leg_size} ${table_leg_size} ${table_leg_height}" />
+        </geometry>
+      </collision>
+    </xacro:macro>
+
+    <xacro:table_leg x="${ table_size_x/2.0 - table_leg_size/2.0 }"
+      y="${ table_size_y/2.0 - table_leg_size/2.0 }" />
+    <xacro:table_leg x="${-table_size_x/2.0 + table_leg_size/2.0 }"
+      y="${ table_size_y/2.0 - table_leg_size/2.0 }" />
+    <xacro:table_leg x="${ table_size_x/2.0 - table_leg_size/2.0 }"
+      y="${-table_size_y/2.0 + table_leg_size/2.0 }" />
+    <xacro:table_leg x="${-table_size_x/2.0 + table_leg_size/2.0 }"
+      y="${-table_size_y/2.0 + table_leg_size/2.0 }" />
+
+    <inertial>
+      <mass value="20.0" />
+      <origin xyz="0 0 ${table_height/2.0}" rpy="0 0 0" />
+      <inertia ixx="1" iyy="1" izz="1" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
+
   <!-- Base link is the center of the robot's bottom plate -->
   <link name="meca_base_link">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_base.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_base.dae" />
       </geometry>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_base_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_base_collision.stl" />
       </geometry>
     </collision>
     <inertial>
-  <mass value="3.0"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
-  <inertia ixx="0.004" iyy="0.004" izz="0.004"
-               ixy="0" ixz="0" iyz="0"/>
-</inertial>
+      <mass value="3.0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.004" iyy="0.004" izz="0.004"
+        ixy="0" ixz="0" iyz="0" />
+    </inertial>
   </link>
+
+  <joint name="robot_to_table" type="fixed">
+    <parent link="table_link" />
+    <child link="meca_base_link" />
+    <origin xyz="${meca_offset_x} ${meca_offset_y} ${table_height + table_thickness/2.0 - 0.025}"
+      rpy="0 0 0" />
+  </joint>
+
   <!-- Joint 1 -->
   <link name="meca_axis_1_link">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j1.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j1.dae" />
       </geometry>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j1_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j1_collision.stl" />
       </geometry>
     </collision>
     <inertial>
-  <mass value="1.2"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
-  <inertia ixx="0.002" iyy="0.002" izz="0.0015"
-               ixy="0" ixz="0" iyz="0"/>
-</inertial>
+      <mass value="1.2" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.002" iyy="0.002" izz="0.0015"
+        ixy="0" ixz="0" iyz="0" />
+    </inertial>
   </link>
   <joint name="meca_axis_1_joint" type="revolute">
-    <origin rpy="0 0 0" xyz="0.012498 0 0.091"/>
-    <parent link="meca_base_link"/>
-    <child link="meca_axis_1_link"/>
-    <axis xyz="0 0 1"/>
-    <limit effort="10.0" lower="-3.05433" upper="3.05433" velocity="2.61799"/>
+    <origin rpy="0 0 0" xyz="0.012498 0 0.091" />
+    <parent link="meca_base_link" />
+    <child link="meca_axis_1_link" />
+    <axis xyz="0 0 1" />
+    <limit effort="10.0" lower="-3.05433" upper="3.05433" velocity="2.61799" />
   </joint>
   <!-- Joint 2 -->
   <link name="meca_axis_2_link">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j2.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j2.dae" />
       </geometry>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j2_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j2_collision.stl" />
       </geometry>
     </collision>
     <inertial>
-  <mass value="1.0"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
-  <inertia ixx="0.0015" iyy="0.0015" izz="0.001"
-               ixy="0" ixz="0" iyz="0"/>
-</inertial>
+      <mass value="1.0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.0015" iyy="0.0015" izz="0.001"
+        ixy="0" ixz="0" iyz="0" />
+    </inertial>
   </link>
   <joint name="meca_axis_2_joint" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.044"/>
-    <parent link="meca_axis_1_link"/>
-    <child link="meca_axis_2_link"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="10.0" lower="-1.22173048" upper="1.5708" velocity="2.61799"/>
+    <origin rpy="0 0 0" xyz="0 0 0.044" />
+    <parent link="meca_axis_1_link" />
+    <child link="meca_axis_2_link" />
+    <axis xyz="0 1 0" />
+    <limit effort="10.0" lower="-1.22173048" upper="1.5708" velocity="2.61799" />
   </joint>
   <!-- Joint 3 -->
   <link name="meca_axis_3_link">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j3.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j3.dae" />
       </geometry>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j3_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j3_collision.stl" />
       </geometry>
     </collision>
     <inertial>
-  <mass value="0.8"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
-  <inertia ixx="0.001" ixy="0.0" ixz="0.0"
-           iyy="0.001" iyz="0.0"
-           izz="0.0008"/>
-</inertial>
+      <mass value="0.8" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+        iyy="0.001" iyz="0.0"
+        izz="0.0008" />
+    </inertial>
   </link>
   <joint name="meca_axis_3_joint" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.135"/>
-    <parent link="meca_axis_2_link"/>
-    <child link="meca_axis_3_link"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="10.0" lower="-2.35619" upper="1.22173048" velocity="3.14159"/>
+    <origin rpy="0 0 0" xyz="0 0 0.135" />
+    <parent link="meca_axis_2_link" />
+    <child link="meca_axis_3_link" />
+    <axis xyz="0 1 0" />
+    <limit effort="10.0" lower="-2.35619" upper="1.22173048" velocity="3.14159" />
   </joint>
   <!-- Joint 4 -->
   <link name="meca_axis_4_link">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j4.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j4.dae" />
       </geometry>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j4_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j4_collision.stl" />
       </geometry>
     </collision>
     <inertial>
-  <mass value="0.6"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
-  <inertia ixx="0.0006" ixy="0.0" ixz="0.0"
-           iyy="0.0006" iyz="0.0"
-           izz="0.0005"/>
-</inertial>
+      <mass value="0.6" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.0006" ixy="0.0" ixz="0.0"
+        iyy="0.0006" iyz="0.0"
+        izz="0.0005" />
+    </inertial>
   </link>
   <joint name="meca_axis_4_joint" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.038"/>
-    <parent link="meca_axis_3_link"/>
-    <child link="meca_axis_4_link"/>
-    <axis xyz="1 0 0"/>
-    <limit effort="10.0" lower="-2.96706" upper="2.96706" velocity="5.23599"/>
+    <origin rpy="0 0 0" xyz="0 0 0.038" />
+    <parent link="meca_axis_3_link" />
+    <child link="meca_axis_4_link" />
+    <axis xyz="1 0 0" />
+    <limit effort="10.0" lower="-2.96706" upper="2.96706" velocity="5.23599" />
   </joint>
   <!-- Joint 5 -->
   <link name="meca_axis_5_link">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j5.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j5.dae" />
       </geometry>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j5_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j5_collision.stl" />
       </geometry>
     </collision>
     <inertial>
-  <mass value="0.5"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
-  <inertia ixx="0.0005" ixy="0.0" ixz="0.0"
-           iyy="0.0005" iyz="0.0"
-           izz="0.0004"/>
-</inertial>
+      <mass value="0.5" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.0005" ixy="0.0" ixz="0.0"
+        iyy="0.0005" iyz="0.0"
+        izz="0.0004" />
+    </inertial>
   </link>
   <joint name="meca_axis_5_joint" type="revolute">
-    <origin rpy="0 0 0" xyz="0.12 0 0"/>
-    <parent link="meca_axis_4_link"/>
-    <child link="meca_axis_5_link"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="10.0" lower="-2.00713" upper="2.00713" velocity="5.23599"/>
+    <origin rpy="0 0 0" xyz="0.12 0 0" />
+    <parent link="meca_axis_4_link" />
+    <child link="meca_axis_5_link" />
+    <axis xyz="0 1 0" />
+    <limit effort="10.0" lower="-2.00713" upper="2.00713" velocity="5.23599" />
   </joint>
   <!-- Joint 6 -->
   <link name="meca_axis_6_link">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j6.dae"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j6.dae" />
       </geometry>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j6_collision.stl"/>
+        <mesh filename="${mesh_prefix}meshes/meca_500_r3_j6_collision.stl" />
       </geometry>
     </collision>
     <inertial>
-  <mass value="0.3"/>
-  <origin xyz="0 0 0" rpy="0 0 0"/>
-  <inertia ixx="0.0003" ixy="0.0" ixz="0.0"
-           iyy="0.0003" iyz="0.0"
-           izz="0.00025"/>
-</inertial>
+      <mass value="0.3" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.0003" ixy="0.0" ixz="0.0"
+        iyy="0.0003" iyz="0.0"
+        izz="0.00025" />
+    </inertial>
   </link>
   <joint name="meca_axis_6_joint" type="revolute">
-    <origin rpy="0 0 0" xyz="0.07 0 0"/>
-    <parent link="meca_axis_5_link"/>
-    <child link="meca_axis_6_link"/>
-    <axis xyz="1 0 0"/>
-    <limit effort="10.0" lower="-3.14159" upper="3.14159" velocity="8.72665"/>
+    <origin rpy="0 0 0" xyz="0.07 0 0" />
+    <parent link="meca_axis_5_link" />
+    <child link="meca_axis_6_link" />
+    <axis xyz="1 0 0" />
+    <limit effort="10.0" lower="-3.14159" upper="3.14159" velocity="8.72665" />
   </joint>
 
   <gazebo>
-      <plugin
-        filename="gz-sim-joint-state-publisher-system"
-        name="gz::sim::systems::JointStatePublisher">
-        <joint_name>meca_axis_1_joint</joint_name>
-        <joint_name>meca_axis_2_joint</joint_name>
-        <joint_name>meca_axis_3_joint</joint_name>
-        <joint_name>meca_axis_4_joint</joint_name>
-        <joint_name>meca_axis_5_joint</joint_name>
-        <joint_name>meca_axis_6_joint</joint_name>
-      </plugin>
+    <plugin
+      filename="gz-sim-joint-state-publisher-system"
+      name="gz::sim::systems::JointStatePublisher">
+      <joint_name>meca_axis_1_joint</joint_name>
+      <joint_name>meca_axis_2_joint</joint_name>
+      <joint_name>meca_axis_3_joint</joint_name>
+      <joint_name>meca_axis_4_joint</joint_name>
+      <joint_name>meca_axis_5_joint</joint_name>
+      <joint_name>meca_axis_6_joint</joint_name>
+    </plugin>
   </gazebo>
 
   <gazebo>
     <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_1_joint</joint_name>
-     <initial_velocity>1.0</initial_velocity>
+      filename="gz-sim-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>meca_axis_1_joint</joint_name>
+      <initial_velocity>1.0</initial_velocity>
     </plugin>
   </gazebo>
   <gazebo>
     <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_1_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
+      filename="gz-sim-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>meca_axis_1_joint</joint_name>
+      <initial_velocity>0.0</initial_velocity>
     </plugin>
   </gazebo>
   <gazebo>
     <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_2_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
+      filename="gz-sim-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>meca_axis_2_joint</joint_name>
+      <initial_velocity>0.0</initial_velocity>
     </plugin>
   </gazebo>
   <gazebo>
     <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_3_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
+      filename="gz-sim-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>meca_axis_3_joint</joint_name>
+      <initial_velocity>0.0</initial_velocity>
     </plugin>
   </gazebo>
   <gazebo>
     <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_4_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
+      filename="gz-sim-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>meca_axis_4_joint</joint_name>
+      <initial_velocity>0.0</initial_velocity>
     </plugin>
   </gazebo>
   <gazebo>
     <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_5_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
+      filename="gz-sim-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>meca_axis_5_joint</joint_name>
+      <initial_velocity>0.0</initial_velocity>
     </plugin>
   </gazebo>
   <gazebo>
     <plugin
-     filename="gz-sim-joint-controller-system"
-     name="gz::sim::systems::JointController">
-     <joint_name>meca_axis_6_joint</joint_name>
-     <initial_velocity>0.0</initial_velocity>
+      filename="gz-sim-joint-controller-system"
+      name="gz::sim::systems::JointController">
+      <joint_name>meca_axis_6_joint</joint_name>
+      <initial_velocity>0.0</initial_velocity>
     </plugin>
   </gazebo>
 
   <link name="camera_mount_link">
-  <visual>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="${mesh_prefix}meshes/aggancio_robot_visual.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-    <material name="yellow_light">
-      <color rgba="1.0 1.0 0.6 1.0"/>
-    </material>
-  </visual>
-  <collision>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="${mesh_prefix}meshes/aggancio_robot_collision.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-  <inertial>
-    <mass value="0.2"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <inertia ixx="0.0002" iyy="0.0002" izz="0.0002" ixy="0" ixz="0" iyz="0"/>
-  </inertial>
-</link>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="${mesh_prefix}meshes/aggancio_robot_visual.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="yellow_light">
+        <color rgba="1.0 1.0 0.6 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="${mesh_prefix}meshes/aggancio_robot_collision.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.2" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="0.0002" iyy="0.0002" izz="0.0002" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
 
-<!-- Joint fisso tra polso e supporto -->
-<joint name="camera_mount_joint" type="fixed">
-  <parent link="meca_axis_6_link"/>
-  <child link="camera_mount_link"/>
-  <origin xyz="0 0 0" rpy="1.5708 0 0"/>
-</joint>
+  <!-- Joint fisso tra polso e supporto -->
+  <joint name="camera_mount_joint" type="fixed">
+    <parent link="meca_axis_6_link" />
+    <child link="camera_mount_link" />
+    <origin xyz="0 0 0" rpy="1.5708 0 0" />
+  </joint>
 
-<link name="camera_adapter_link">
-  <visual>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="${mesh_prefix}meshes/aggancio_camera_visual.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-    <material name="beige_light">
-      <color rgba="0.96 0.87 0.70 1.0"/>
-    </material>
-  </visual>
-  <collision>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="${mesh_prefix}meshes/aggancio_camera_collision.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-  <inertial>
-    <mass value="0.05"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-    <inertia ixx="5e-05" iyy="5e-05" izz="5e-05" ixy="0" ixz="0" iyz="0"/>
-  </inertial>
-</link>
+  <link name="camera_adapter_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="${mesh_prefix}meshes/aggancio_camera_visual.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="beige_light">
+        <color rgba="0.96 0.87 0.70 1.0" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="${mesh_prefix}meshes/aggancio_camera_collision.stl"
+          scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.05" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="5e-05" iyy="5e-05" izz="5e-05" ixy="0" ixz="0" iyz="0" />
+    </inertial>
+  </link>
 
-<!-- Joint fisso tra camera_mount_link e camera_adapter_link -->
-<joint name="camera_adapter_joint" type="fixed">
-  <parent link="camera_mount_link"/>
-  <child link="camera_adapter_link"/>
-  <origin xyz="0.017 0.0356 0" rpy="-1.5708 0 0"/>
-</joint>
+  <!-- Joint fisso tra camera_mount_link e camera_adapter_link -->
+  <joint name="camera_adapter_joint" type="fixed">
+    <parent link="camera_mount_link" />
+    <child link="camera_adapter_link" />
+    <origin xyz="0.017 0.0356 0" rpy="-1.5708 0 0" />
+  </joint>
 
-<xacro:sensor_d435i parent="camera_adapter_link" name="D435i_camera" topics_ns="D435i_camera"> 
-    <origin xyz="0.02 0.0 -0.01" rpy="0.0 0.0 0.0"/>
+  <xacro:sensor_d435i parent="camera_adapter_link" name="D435i_camera" topics_ns="D435i_camera">
+    <origin xyz="0.02 0.0 -0.01" rpy="0.0 0.0 0.0" />
   </xacro:sensor_d435i>
 </robot>

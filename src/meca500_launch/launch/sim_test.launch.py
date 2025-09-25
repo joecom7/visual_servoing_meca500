@@ -51,8 +51,8 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": 1000,
-                "sine_wave_period_s": 7.0,
-                "sine_wave_amplitude": 0.5,
+                "circle_radius": 0.05,
+                "circle_period_s": 1.0,
             }
         ],
     )
