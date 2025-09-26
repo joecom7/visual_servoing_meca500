@@ -25,6 +25,12 @@ class PersonDetector(Node):
         }
         self.imgsz = mode_to_imgsz.get(mode, 640)
 
+        self.declare_parameter("image_width_pixels", 1280)
+        self.image_width_pixels = self.get_parameter("image_width_pixels").value
+
+        self.declare_parameter("image_height_pixels", 720)
+        self.image_height_pixels = self.get_parameter("image_height_pixels").value
+
         self.model = YOLO("yolov8n.pt")
 
         # ROS subscriptions and publishers
@@ -80,8 +86,8 @@ class PersonDetector(Node):
                     depth_value = float("nan")
 
                 pose = Pose()
-                pose.position.x = cx
-                pose.position.y = cy
+                pose.position.x = cx - self.image_width_pixels/2
+                pose.position.y = cy - self.image_height_pixels/2
                 pose.position.z = depth_value
                 pose_array.poses.append(pose)
 

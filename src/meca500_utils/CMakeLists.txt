@@ -28,7 +28,21 @@ ament_target_dependencies(
   "moveit_ros_planning_interface"
 )
 
+add_executable(image_jacobian_calculator src/image_jacobian_calculator.cpp)
+target_include_directories(image_jacobian_calculator PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_features(image_jacobian_calculator PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  image_jacobian_calculator
+  "rclcpp"
+  "meca500_interfaces"
+  "sensor_msgs"
+  "moveit_ros_planning_interface"
+)
+
 install(TARGETS jacobian_calculator
+                image_jacobian_calculator
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

@@ -14,14 +14,14 @@ def generate_launch_description():
     declare_camera_update_rate = DeclareLaunchArgument(
         "camera_update_rate",
         default_value="60.0",
-        description="Update rate of the camera in Hz"
+        description="Update rate of the camera in Hz",
     )
 
     # Declare the performance_mode argument for YOLO
     declare_performance_mode = DeclareLaunchArgument(
         "performance_mode",
         default_value="high",
-        description="YOLO performance mode: low, medium, high"
+        description="YOLO performance mode: low, medium, high",
     )
 
     # Pass the launch argument to the sim.launch.py file
@@ -35,7 +35,6 @@ def generate_launch_description():
     )
 
     meca500_moveit_config_dir = get_package_share_directory("meca500_moveit_config")
-
 
     # Pass the launch argument to the sim.launch.py file
     move_group_launch = IncludeLaunchDescription(
@@ -62,12 +61,28 @@ def generate_launch_description():
         executable="image_listener",
         output="screen",
         parameters=[
-            {"performance_mode": LaunchConfiguration("performance_mode")}
+            {
+                "performance_mode": LaunchConfiguration("performance_mode"),
+                "image_width_pixels": 1280,
+                "image_height_pixels": 720,
+            }
         ],
     )
 
     jacobian_calculator = Node(
         package="meca500_utils", executable="jacobian_calculator", output="screen"
+    )
+
+    image_jacobian_calculator = Node(
+        package="meca500_utils",
+        executable="image_jacobian_calculator",
+        output="screen",
+        parameters=[
+            {
+                "horizontal_fov_degrees": 85.2,
+                "image_width_pixels": 1280,
+            }
+        ],
     )
 
     return LaunchDescription(
@@ -78,6 +93,7 @@ def generate_launch_description():
             sim_launch,
             meca500_vision,
             jacobian_calculator,
-            move_group_launch
+            move_group_launch,
+            image_jacobian_calculator,
         ]
     )

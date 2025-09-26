@@ -1,0 +1,8 @@
+float64 u     # pixels
+float64 v     # pixels
+float64 depth # m
+---
+# Response
+float64[] image_jacobian
+int32 rows
+int32 cols
