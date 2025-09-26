@@ -45,12 +45,13 @@ def generate_launch_description():
 
     meca500_control = Node(
         package="meca500_control",
-        executable="ibvs_dumb",
+        executable="circle_end_effector",
         output="screen",
         parameters=[
             {
                 "cycle_frequency_hz": 1000,
-                "k_p": 1e-3,
+                "circle_radius": 0.02,
+                "circle_period_s": 2.0,
             }
         ],
     )

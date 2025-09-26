@@ -14,10 +14,10 @@ public:
   {
     // Dichiarazione dei parametri e lettura immediata
     this->declare_parameter<double>("horizontal_fov_degrees", DEFAULT_HORIZONTAL_FOV_DEGREES);
-    this->declare_parameter<double>("image_width_pixels", DEFAULT_IMAGE_WIDTH_PIXELS);
+    this->declare_parameter<int>("image_width_pixels", DEFAULT_IMAGE_WIDTH_PIXELS);
 
     double horizontal_fov = this->get_parameter("horizontal_fov_degrees").as_double() * M_PI / 180.0;
-    double image_width_pixels = this->get_parameter("image_width_pixels").as_double();
+    int image_width_pixels = this->get_parameter("image_width_pixels").as_int();
     f_ = image_width_pixels / (2.0 * tan(horizontal_fov / 2.0));
 
     service_ = this->create_service<GetImageJacobian>(

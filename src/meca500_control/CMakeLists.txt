@@ -47,8 +47,24 @@ ament_target_dependencies(
   "tf2_geometry_msgs"
 )
 
+add_executable(ibvs_dumb src/ibvs_dumb.cpp)
+target_include_directories(ibvs_dumb PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_features(ibvs_dumb PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  ibvs_dumb
+  "std_msgs"
+  "rclcpp"
+  "sensor_msgs"
+  "meca500_interfaces"
+  "tf2"
+  "tf2_geometry_msgs"
+)
+
 install(TARGETS sine_joint1
                 circle_end_effector
+                ibvs_dumb
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

@@ -25,6 +25,8 @@ class PersonDetector(Node):
         }
         self.imgsz = mode_to_imgsz.get(mode, 640)
 
+        self.latest_depth = None
+
         self.declare_parameter("image_width_pixels", 1280)
         self.image_width_pixels = self.get_parameter("image_width_pixels").value
 
