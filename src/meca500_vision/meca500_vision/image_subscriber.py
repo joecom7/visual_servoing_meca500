@@ -1,3 +1,4 @@
+import numpy as np
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -30,14 +31,27 @@ class PersonDetector(Node):
         self.subscription = self.create_subscription(
             Image, "/camera/image_raw", self.listener_callback, 10
         )
+        self.create_subscription(Image, "/camera/depth_image", self.depth_callback, 10)
+
         self.publisher = self.create_publisher(PoseArray, "/target_poses", 10)
         self.bridge = CvBridge()
+
+    def depth_callback(self, msg):
+        try:
+            depth_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+            self.latest_depth = np.array(depth_img, dtype=np.float32)
+        except Exception as e:
+            self.get_logger().error(f"Could not convert depth image: {e}")
 
     def listener_callback(self, msg):
         try:
             img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
         except Exception as e:
             self.get_logger().error(f"Could not convert image: {e}")
+            return
+
+        if self.latest_depth is None:
+            self.get_logger().warn("No depth image received yet.")
             return
 
         if self.imgsz is not None:
@@ -57,10 +71,18 @@ class PersonDetector(Node):
                 x1, y1, x2, y2 = box.xyxy[0].cpu().detach().numpy()
                 cx = float((x1 + x2) / 2)
                 cy = float((y1 + y2) / 2)
+                if (
+                    0 <= cy < self.latest_depth.shape[0]
+                    and 0 <= cx < self.latest_depth.shape[1]
+                ):
+                    depth_value = float(self.latest_depth[int(cy), int(cx)])
+                else:
+                    depth_value = float("nan")
+
                 pose = Pose()
                 pose.position.x = cx
                 pose.position.y = cy
-                pose.position.z = 0.0
+                pose.position.z = depth_value
                 pose_array.poses.append(pose)
 
         if pose_array.poses:
