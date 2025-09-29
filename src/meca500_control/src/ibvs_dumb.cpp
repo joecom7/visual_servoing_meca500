@@ -84,14 +84,11 @@ private:
             Eigen::Map<Eigen::VectorXd>(J_img.data(), J_img.size()) =
                 Eigen::Map<Eigen::VectorXd>(img_res->image_jacobian.data(), img_res->image_jacobian.size());
 
-            // --- STEP 1: estrai solo parte lineare ---
-
             Eigen::MatrixXd J_full = J_img*J_robot;
 
             Eigen::Vector2d e(target_u_, target_v_);
             Eigen::VectorXd q_dot = k_p_ * J_full.completeOrthogonalDecomposition().pseudoInverse() * e;
 
-            // Pubblico le velocità articolari
             sensor_msgs::msg::JointState vel_msg;
             vel_msg.header.stamp = this->get_clock()->now();
             vel_msg.name.resize(NUM_JOINTS);
