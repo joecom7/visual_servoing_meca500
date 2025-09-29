@@ -21,8 +21,8 @@ public:
     f_ = image_width_pixels / (2.0 * tan(horizontal_fov / 2.0));
 
     service_ = this->create_service<GetImageJacobian>(
-        "get_matrix", [this](const std::shared_ptr<GetImageJacobian::Request> request,
-                             std::shared_ptr<GetImageJacobian::Response> response) {
+        "/get_image_jacobian", [this](const std::shared_ptr<GetImageJacobian::Request> request,
+                                      std::shared_ptr<GetImageJacobian::Response> response) {
           Eigen::Matrix<double, 2, 6> L;
           // Riga 1
           L(0, 0) = -f_ / (rho_u * request->depth);
@@ -39,9 +39,20 @@ public:
           L(1, 4) = -(rho_v * request->u * request->v) / f_;
           L(1, 5) = -request->u;
 
+          Eigen::Matrix<double, 2, 6> L_orig = L;
+
+          // Map to EE frame
+          L.col(0) = L_orig.col(2);  // vx → old vz
+          L.col(1) = L_orig.col(0);  // vy → old vx
+          L.col(2) = L_orig.col(1);  // vz → old vy
+          L.col(3) = L_orig.col(5);  // wx → old wz
+          L.col(4) = L_orig.col(3);  // wy → old wx
+          L.col(5) = L_orig.col(4);  // wz → old wy
+
           response->rows = L.rows();
           response->cols = L.cols();
           response->image_jacobian.resize(L.size());
+
           Eigen::Map<Eigen::VectorXd>(response->image_jacobian.data(), L.size()) =
               Eigen::Map<const Eigen::VectorXd>(L.data(), L.size());
         });

@@ -50,7 +50,7 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": 1000,
-                "k_p": 1e-3,
+                "k_p": 5e+0,
             }
         ],
     )

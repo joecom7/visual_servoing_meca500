@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     bool received_joint_state = false;
 
     auto joint_sub = node->create_subscription<sensor_msgs::msg::JointState>(
-        "/joint_states_no_effort", 10,
+        "/joint_states", 10,
         [&current_joint_positions, &received_joint_state](const sensor_msgs::msg::JointState::SharedPtr msg){
             for (int i = 0; i < NUM_JOINTS; ++i)
                 current_joint_positions[i] = msg->position[i];

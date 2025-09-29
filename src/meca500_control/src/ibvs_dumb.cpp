@@ -23,7 +23,7 @@ public:
     cycle_frequency_hz_ = this->get_parameter("cycle_frequency_hz").as_int();
 
     joint_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/joint_states_no_effort", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
+        "/joint_states", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
           current_joint_positions_ = msg->position;
           received_joint_state_ = true;
         });
@@ -41,17 +41,14 @@ public:
 
     vel_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("/joint_velocity_cmd", 10);
 
-    jacobian_client_ = this->create_client<GetJacobian>("get_jacobian");
-    image_j_client_ = this->create_client<GetImageJacobian>("get_matrix");
-
     // Clients
-    jacobian_client_ = this->create_client<GetJacobian>("get_jacobian");
+    jacobian_client_ = this->create_client<GetJacobian>("/get_jacobian");
     while (!jacobian_client_->wait_for_service(std::chrono::seconds(1)) && rclcpp::ok())
     {
       RCLCPP_INFO(this->get_logger(), "Waiting for Jacobian service...");
     }
 
-    image_j_client_ = this->create_client<GetImageJacobian>("get_matrix");
+    image_j_client_ = this->create_client<GetImageJacobian>("/get_image_jacobian");
     while (!image_j_client_->wait_for_service(std::chrono::seconds(1)) && rclcpp::ok())
     {
       RCLCPP_INFO(this->get_logger(), "Waiting for Image Jacobian service...");
@@ -87,19 +84,12 @@ private:
             Eigen::Map<Eigen::VectorXd>(J_img.data(), J_img.size()) =
                 Eigen::Map<Eigen::VectorXd>(img_res->image_jacobian.data(), img_res->image_jacobian.size());
 
-            // --- STEP 1: calcolo velocità end-effector in immagine ---
-            Eigen::Vector2d e(0.0, -target_v_);
-            Eigen::VectorXd v_e = k_p_ * J_img.completeOrthogonalDecomposition().pseudoInverse() * e;
+            // --- STEP 1: estrai solo parte lineare ---
 
-            // Log per debug
-            std::ostringstream oss_img;
-            oss_img << "Required end-effector velocity (v_e): ";
-            for (int i = 0; i < v_e.size(); ++i)
-              oss_img << v_e[i] << " ";
-            RCLCPP_INFO(this->get_logger(), "%s", oss_img.str().c_str());
+            Eigen::MatrixXd J_full = J_img*J_robot;
 
-            // --- STEP 2: calcolo velocità articolari ---
-            Eigen::VectorXd q_dot = J_robot.completeOrthogonalDecomposition().pseudoInverse() * v_e;
+            Eigen::Vector2d e(target_u_, target_v_);
+            Eigen::VectorXd q_dot = k_p_ * J_full.completeOrthogonalDecomposition().pseudoInverse() * e;
 
             // Pubblico le velocità articolari
             sensor_msgs::msg::JointState vel_msg;
@@ -118,7 +108,7 @@ private:
             oss_q << "Publishing joint velocities: ";
             for (int i = 0; i < NUM_JOINTS; ++i)
               oss_q << vel_msg.name[i] << "=" << vel_msg.velocity[i] << " ";
-            // RCLCPP_INFO(this->get_logger(), "%s", oss_q.str().c_str());
+            RCLCPP_INFO(this->get_logger(), "%s", oss_q.str().c_str());
           });
     });
   }

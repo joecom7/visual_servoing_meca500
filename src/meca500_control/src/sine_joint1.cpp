@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr subscription =
       node->create_subscription<sensor_msgs::msg::JointState>(
-          "/joint_states_no_effort", 10,
+          "/joint_states", 10,
           [node, &t0, &initialized](sensor_msgs::msg::JointState::UniquePtr msg) -> void {
             if (!initialized && fabs(msg->position[0]) < 1e-4)
             {

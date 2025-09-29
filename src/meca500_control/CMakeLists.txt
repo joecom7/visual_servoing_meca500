@@ -13,6 +13,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(meca500_interfaces REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_eigen REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -30,6 +31,7 @@ ament_target_dependencies(
   "meca500_interfaces"
   "tf2"
   "tf2_geometry_msgs"
+  "tf2_eigen"
 )
 
 add_executable(circle_end_effector src/circle_end_effector.cpp)
@@ -45,6 +47,7 @@ ament_target_dependencies(
   "meca500_interfaces"
   "tf2"
   "tf2_geometry_msgs"
+  "tf2_eigen"
 )
 
 add_executable(ibvs_dumb src/ibvs_dumb.cpp)
@@ -60,6 +63,7 @@ ament_target_dependencies(
   "meca500_interfaces"
   "tf2"
   "tf2_geometry_msgs"
+  "tf2_eigen"
 )
 
 install(TARGETS sine_joint1

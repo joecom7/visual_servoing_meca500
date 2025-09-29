@@ -26,41 +26,39 @@ private:
   bool received_joint_state_ = false;
 
   const std::string ROBOT_MODEL_GROUP = "meca500_arm";  // adjust to your MoveIt SRDF group
-  const std::string EE_LINK = "D435i_camera_link";         // end-effector link
+  const std::string EE_LINK = "D435i_camera_link";      // end-effector link
 
 public:
   JacobianServiceNode() : Node("jacobian_service_node")
   {
     // Subscribe to joint states
     joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/joint_states_no_effort", 10,
-        [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
+        "/joint_states", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
           current_joint_positions_ = msg->position;
           received_joint_state_ = true;
         });
 
     // Create service
-    jacobian_service_ = this->create_service<GetJacobian>(
-        "get_jacobian",
-        [this](const std::shared_ptr<GetJacobian::Request> request,
-               std::shared_ptr<GetJacobian::Response> response) {
+    jacobian_service_ =
+        this->create_service<GetJacobian>("/get_jacobian", [this](const std::shared_ptr<GetJacobian::Request> request,
+                                                                  std::shared_ptr<GetJacobian::Response> response) {
           (void)request;
-          if (!received_joint_state_) {
+          if (!received_joint_state_)
+          {
             RCLCPP_WARN(this->get_logger(), "No joint states received yet!");
             return;
           }
 
           Eigen::MatrixXd jacobian;
           kinematic_state_->setVariablePositions(current_joint_positions_);
-          kinematic_state_->getJacobian(joint_model_group_,
-                                        kinematic_state_->getLinkModel(EE_LINK),
-                                        Eigen::Vector3d::Zero(),
-                                        jacobian);
+          kinematic_state_->getJacobian(joint_model_group_, kinematic_state_->getLinkModel(EE_LINK),
+                                        Eigen::Vector3d::Zero(), jacobian, false);
 
           response->rows = jacobian.rows();
           response->cols = jacobian.cols();
           response->jacobian.resize(jacobian.size());
-          Eigen::Map<Eigen::VectorXd>(response->jacobian.data(), jacobian.size()) = Eigen::Map<Eigen::VectorXd>(jacobian.data(), jacobian.size());
+          Eigen::Map<Eigen::VectorXd>(response->jacobian.data(), jacobian.size()) =
+              Eigen::Map<Eigen::VectorXd>(jacobian.data(), jacobian.size());
         });
 
     setup_moveit();
@@ -71,8 +69,7 @@ public:
   {
     // Separate node for RobotModelLoader
     robot_loader_node_ = std::make_shared<rclcpp::Node>(
-        "robot_model_loader_node",
-        rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true));
+        "robot_model_loader_node", rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true));
 
     robot_model_loader_ = std::make_shared<robot_model_loader::RobotModelLoader>(robot_loader_node_);
     auto kinematic_model = robot_model_loader_->getModel();
