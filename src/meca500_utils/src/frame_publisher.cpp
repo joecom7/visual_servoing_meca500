@@ -38,7 +38,7 @@ private:
     geometry_msgs::msg::TransformStamped transformStamped;
     try
     {
-      transformStamped = tf_buffer_->lookupTransform("D435i_camera_link", "world", tf2::TimePointZero);
+      transformStamped = tf_buffer_->lookupTransform("D435i_camera_link", "table_link", tf2::TimePointZero);
 
       geometry_msgs::msg::PoseStamped pose_msg;
       pose_msg.header.stamp = this->now();
@@ -52,7 +52,7 @@ private:
     }
     catch (tf2::TransformException& ex)
     {
-    //   RCLCPP_WARN(this->get_logger(), "Could not transform: %s", ex.what());
+      // RCLCPP_WARN(this->get_logger(), "Could not transform: %s", ex.what());
     }
   }
 

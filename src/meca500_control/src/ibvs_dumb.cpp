@@ -58,14 +58,23 @@ public:
     camera_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
         "/camera_pose", 10, [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
           // Convert quaternion to roll
-          double qx = msg->pose.orientation.x;
-          double qy = msg->pose.orientation.y;
-          double qz = msg->pose.orientation.z;
-          double qw = msg->pose.orientation.w;
+          // Quaternion camera → world
+          Eigen::Quaterniond q_cam(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y,
+                                   msg->pose.orientation.z);
 
-          double sinr_cosp = 2.0 * (qw * qx + qy * qz);
-          double cosr_cosp = 1.0 - 2.0 * (qx * qx + qy * qy);
-          camera_roll_ = std::atan2(sinr_cosp, cosr_cosp);
+          // Convert to rotation matrix
+          Eigen::Matrix3d R_cam_world = q_cam.toRotationMatrix();
+
+          // Z-axis of WRF (same as camera) in world frame
+          Eigen::Vector3d Z_wr = R_cam_world.col(2);  // terza colonna
+
+          // RCLCPP_INFO(this->get_logger(), "Z_wr: [%f, %f, %f]", Z_wr.x(), Z_wr.y(), Z_wr.z());
+
+          // Project Z on TRF YZ plane
+          Eigen::Vector3d proj_YZ(0, Z_wr.y(), Z_wr.z());
+
+          // Roll error needed to align Z vertical in TRF
+          roll_error = std::atan2(proj_YZ.y(), proj_YZ.z());
         });
 
     vel_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("/joint_velocity_cmd", 10);
@@ -116,27 +125,30 @@ private:
         Eigen::Map<Eigen::VectorXd>(J_img.data(), J_img.size()) =
             Eigen::Map<Eigen::VectorXd>(img_res->image_jacobian.data(), img_res->image_jacobian.size());
 
-        // Remove 4th column from J_img
         Eigen::MatrixXd J_img_mod(J_img.rows(), J_img.cols() - 1);
         J_img_mod << J_img.leftCols(3), J_img.rightCols(J_img.cols() - 4);
 
-        // Remove 4th row from J_robot
         Eigen::MatrixXd J_robot_mod(J_robot.rows() - 1, J_robot.cols());
         J_robot_mod << J_robot.topRows(3), J_robot.bottomRows(J_robot.rows() - 4);
 
-        // Multiply modified matrices
-        Eigen::MatrixXd J_full = J_img_mod * J_robot_mod;
+        Eigen::MatrixXd J_roll = J_robot.row(3);  // 1x6
+        Eigen::VectorXd q_dot_roll = -k_roll_ * J_roll.completeOrthogonalDecomposition().pseudoInverse() * roll_error;
 
+        // Proiettore nullo
+        Eigen::MatrixXd P_roll = Eigen::MatrixXd::Identity(NUM_JOINTS, NUM_JOINTS) -
+                                 J_roll.completeOrthogonalDecomposition().pseudoInverse() * J_roll;
+
+        // q_dot IBVS senza influenzare il roll
         Eigen::Vector2d e(target_u_, target_v_);
-        Eigen::VectorXd q_dot = k_p_ * J_full.completeOrthogonalDecomposition().pseudoInverse() * e;
+        RCLCPP_INFO(this->get_logger(), "roll error: %f", roll_error);
 
-        double roll_error = camera_roll_;  // target roll is 0
-        // RCLCPP_INFO(this->get_logger(), "roll error: %f", roll_error);
+        Eigen::MatrixXd J_full = J_img * J_robot;
 
-        Eigen::MatrixXd J_roll = J_robot.row(3);  // 1x6 matrix
-        Eigen::VectorXd q_dot_roll = k_roll_ * J_roll.completeOrthogonalDecomposition().pseudoInverse() * roll_error;
+        Eigen::VectorXd q_dot_ibvs = k_p_ * J_full.completeOrthogonalDecomposition().pseudoInverse() * e;
+        q_dot_ibvs = P_roll * q_dot_ibvs;
 
-        q_dot = q_dot + q_dot_roll;
+        // Somma delle velocità
+        Eigen::VectorXd q_dot = q_dot_roll + q_dot_ibvs;
 
         sensor_msgs::msg::JointState vel_msg;
         vel_msg.header.stamp = this->get_clock()->now();
@@ -169,7 +181,7 @@ private:
   bool received_target_ = false;
   bool control_enabled_ = false;
 
-  double camera_roll_ = 0.0;
+  double roll_error = 0.0;
 
   double target_u_ = 0, target_v_ = 0, target_depth_ = 1.0;
   double k_p_;

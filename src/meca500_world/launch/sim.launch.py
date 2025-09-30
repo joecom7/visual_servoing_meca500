@@ -201,7 +201,7 @@ def generate_launch_description():
         "camera_update_rate", default_value="60.0"
     )
     declare_table_height = DeclareLaunchArgument(
-        "table_height", default_value="0.75", description="Altezza del tavolo"
+        "table_height", default_value="2.0", description="Altezza del tavolo"
     )
     declare_table_thickness = DeclareLaunchArgument(
         "table_thickness", default_value="0.05", description="Spessore del piano del tavolo"

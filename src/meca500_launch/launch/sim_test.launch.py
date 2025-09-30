@@ -51,7 +51,7 @@ def generate_launch_description():
             {
                 "cycle_frequency_hz": 100,
                 "k_p": 2e0,
-                "k_roll": 1e2,
+                "k_roll": 1e+1,
             }
         ],
     )
@@ -75,6 +75,7 @@ def generate_launch_description():
             {
                 "cycle_frequency_hz": 1000,
                 "k_p": 1e+0,
+                "joint_norm_tolerance" : 0.05,
             }
         ],
     )
@@ -115,8 +116,8 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": 1000,
-                "state_delay_sec": 0.5,
-                "initial_position": [-1.57, 0.0, 0.0, 0.0, 0.0, 0.0],
+                "state_delay_sec": 0.0,
+                "initial_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 "home_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             }
         ],
