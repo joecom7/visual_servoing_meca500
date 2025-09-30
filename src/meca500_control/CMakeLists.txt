@@ -14,6 +14,7 @@ find_package(meca500_interfaces REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_eigen REQUIRED)
+find_package(std_srvs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -64,11 +65,30 @@ ament_target_dependencies(
   "tf2"
   "tf2_geometry_msgs"
   "tf2_eigen"
+  "std_srvs"
+)
+
+add_executable(move_joint_pose src/move_joint_pose.cpp)
+target_include_directories(move_joint_pose PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_features(move_joint_pose PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  move_joint_pose
+  "std_msgs"
+  "rclcpp"
+  "sensor_msgs"
+  "meca500_interfaces"
+  "tf2"
+  "tf2_geometry_msgs"
+  "tf2_eigen"
+  "std_srvs"
 )
 
 install(TARGETS sine_joint1
                 circle_end_effector
                 ibvs_dumb
+                move_joint_pose
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

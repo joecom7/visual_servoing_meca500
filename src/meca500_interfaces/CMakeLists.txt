@@ -13,6 +13,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetJacobian.srv"
   "srv/GetImageJacobian.srv"
+  "action/MoveToJointPose.action"
 )
 
 if(BUILD_TESTING)

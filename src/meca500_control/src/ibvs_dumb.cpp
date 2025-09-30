@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <std_srvs/srv/set_bool.hpp>
 
 using GetJacobian = meca500_interfaces::srv::GetJacobian;
 using GetImageJacobian = meca500_interfaces::srv::GetImageJacobian;
@@ -25,6 +26,16 @@ public:
 
     this->declare_parameter<int>("cycle_frequency_hz", 1000);
     cycle_frequency_hz_ = this->get_parameter("cycle_frequency_hz").as_int();
+
+    // Service per abilitare/disabilitare il controllo
+    control_srv_ = this->create_service<std_srvs::srv::SetBool>(
+        "/ibvs", [this](const std_srvs::srv::SetBool::Request::SharedPtr request,
+                        std_srvs::srv::SetBool::Response::SharedPtr response) {
+          control_enabled_ = request->data;
+          response->success = true;
+          response->message = control_enabled_ ? "IBVS control enabled" : "IBVS control disabled";
+          RCLCPP_INFO(this->get_logger(), "%s", response->message.c_str());
+        });
 
     joint_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
         "/joint_states", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
@@ -71,6 +82,7 @@ public:
     {
       RCLCPP_INFO(this->get_logger(), "Waiting for Image Jacobian service...");
     }
+
     timer_ = this->create_wall_timer(std::chrono::milliseconds(1000 / cycle_frequency_hz_),
                                      std::bind(&IBVSNode::control_loop, this));
   }
@@ -78,6 +90,8 @@ public:
 private:
   void control_loop()
   {
+    if (!control_enabled_)  // skip se disabilitato
+      return;
     if (!received_joint_state_ || !received_target_)
       return;
 
@@ -95,50 +109,52 @@ private:
       img_req->v = target_v_;
       img_req->depth = target_depth_;
 
-      image_j_client_->async_send_request(
-          img_req, [this, J_robot](rclcpp::Client<GetImageJacobian>::SharedFuture img_future) {
-            auto img_res = img_future.get();
-            Eigen::MatrixXd J_img(img_res->rows, img_res->cols);
-            Eigen::Map<Eigen::VectorXd>(J_img.data(), J_img.size()) =
-                Eigen::Map<Eigen::VectorXd>(img_res->image_jacobian.data(), img_res->image_jacobian.size());
+      image_j_client_->async_send_request(img_req, [this, J_robot](
+                                                       rclcpp::Client<GetImageJacobian>::SharedFuture img_future) {
+        auto img_res = img_future.get();
+        Eigen::MatrixXd J_img(img_res->rows, img_res->cols);
+        Eigen::Map<Eigen::VectorXd>(J_img.data(), J_img.size()) =
+            Eigen::Map<Eigen::VectorXd>(img_res->image_jacobian.data(), img_res->image_jacobian.size());
 
-            // Remove 4th column from J_img
-            Eigen::MatrixXd J_img_mod(J_img.rows(), J_img.cols() - 1);
-            J_img_mod << J_img.leftCols(3), J_img.rightCols(J_img.cols() - 4);
+        // Remove 4th column from J_img
+        Eigen::MatrixXd J_img_mod(J_img.rows(), J_img.cols() - 1);
+        J_img_mod << J_img.leftCols(3), J_img.rightCols(J_img.cols() - 4);
 
-            // Remove 4th row from J_robot
-            Eigen::MatrixXd J_robot_mod(J_robot.rows() - 1, J_robot.cols());
-            J_robot_mod << J_robot.topRows(3), J_robot.bottomRows(J_robot.rows() - 4);
+        // Remove 4th row from J_robot
+        Eigen::MatrixXd J_robot_mod(J_robot.rows() - 1, J_robot.cols());
+        J_robot_mod << J_robot.topRows(3), J_robot.bottomRows(J_robot.rows() - 4);
 
-            // Multiply modified matrices
-            Eigen::MatrixXd J_full = J_img_mod * J_robot_mod;
+        // Multiply modified matrices
+        Eigen::MatrixXd J_full = J_img_mod * J_robot_mod;
 
-            Eigen::Vector2d e(target_u_, target_v_);
-            Eigen::VectorXd q_dot = k_p_ * J_full.completeOrthogonalDecomposition().pseudoInverse() * e;
+        Eigen::Vector2d e(target_u_, target_v_);
+        Eigen::VectorXd q_dot = k_p_ * J_full.completeOrthogonalDecomposition().pseudoInverse() * e;
 
-            double roll_error = camera_roll_;  // target roll is 0
-            // RCLCPP_INFO(this->get_logger(), "roll error: %f", roll_error);
+        double roll_error = camera_roll_;  // target roll is 0
+        // RCLCPP_INFO(this->get_logger(), "roll error: %f", roll_error);
 
-            Eigen::MatrixXd J_roll = J_robot.row(3);  // 1x6 matrix
-            Eigen::VectorXd q_dot_roll = k_roll_ * J_roll.completeOrthogonalDecomposition().pseudoInverse() * roll_error;
+        Eigen::MatrixXd J_roll = J_robot.row(3);  // 1x6 matrix
+        Eigen::VectorXd q_dot_roll = k_roll_ * J_roll.completeOrthogonalDecomposition().pseudoInverse() * roll_error;
 
-            q_dot = q_dot + q_dot_roll;
+        q_dot = q_dot + q_dot_roll;
 
-            sensor_msgs::msg::JointState vel_msg;
-            vel_msg.header.stamp = this->get_clock()->now();
-            vel_msg.name.resize(NUM_JOINTS);
-            vel_msg.velocity.resize(NUM_JOINTS);
-            for (int i = 0; i < NUM_JOINTS; ++i)
-            {
-              vel_msg.name[i] = "meca_axis_" + std::to_string(i + 1) + "_joint";
-              vel_msg.velocity[i] = q_dot[i];
-            }
-            vel_pub_->publish(vel_msg);
-          });
+        sensor_msgs::msg::JointState vel_msg;
+        vel_msg.header.stamp = this->get_clock()->now();
+        vel_msg.name.resize(NUM_JOINTS);
+        vel_msg.velocity.resize(NUM_JOINTS);
+        for (int i = 0; i < NUM_JOINTS; ++i)
+        {
+          vel_msg.name[i] = "meca_axis_" + std::to_string(i + 1) + "_joint";
+          vel_msg.velocity[i] = q_dot[i];
+        }
+        vel_pub_->publish(vel_msg);
+      });
     });
   }
 
   // Members
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr control_srv_;
+
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr target_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr camera_pose_sub_;
@@ -151,6 +167,7 @@ private:
   std::vector<double> current_joint_positions_{ NUM_JOINTS, 0.0 };
   bool received_joint_state_ = false;
   bool received_target_ = false;
+  bool control_enabled_ = false;
 
   double camera_roll_ = 0.0;
 

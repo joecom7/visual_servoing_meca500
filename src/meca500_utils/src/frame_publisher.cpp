@@ -52,7 +52,7 @@ private:
     }
     catch (tf2::TransformException& ex)
     {
-      RCLCPP_WARN(this->get_logger(), "Could not transform: %s", ex.what());
+    //   RCLCPP_WARN(this->get_logger(), "Could not transform: %s", ex.what());
     }
   }
 

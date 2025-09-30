@@ -50,8 +50,8 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": 100,
-                "k_p": 2e+0,
-                "k_roll": 1e+2,
+                "k_p": 2e0,
+                "k_roll": 1e2,
             }
         ],
     )
@@ -63,6 +63,18 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": 1000,
+            }
+        ],
+    )
+
+    move_joint_pose = Node(
+        package="meca500_control",
+        executable="move_joint_pose",
+        output="screen",
+        parameters=[
+            {
+                "cycle_frequency_hz": 1000,
+                "k_p": 1e+0,
             }
         ],
     )
@@ -96,6 +108,20 @@ def generate_launch_description():
         ],
     )
 
+    home_and_follow = Node(
+        package="meca500_launch",
+        executable="home_and_follow",
+        output="screen",
+        parameters=[
+            {
+                "cycle_frequency_hz": 1000,
+                "state_delay_sec": 0.5,
+                "initial_position": [-1.57, 0.0, 0.0, 0.0, 0.0, 0.0],
+                "home_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            }
+        ],
+    )
+
     return LaunchDescription(
         [
             declare_camera_update_rate,
@@ -106,6 +132,8 @@ def generate_launch_description():
             jacobian_calculator,
             move_group_launch,
             image_jacobian_calculator,
-            frame_publisher
+            frame_publisher,
+            home_and_follow,
+            move_joint_pose,
         ]
     )

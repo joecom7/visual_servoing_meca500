@@ -9,6 +9,28 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(meca500_world REQUIRED)
 find_package(meca500_control REQUIRED)
+find_package(meca500_interfaces REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(std_srvs REQUIRED)
+
+add_executable(home_and_follow src/home_and_follow.cpp)
+target_include_directories(home_and_follow PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_features(home_and_follow PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  home_and_follow
+  "rclcpp"
+  "sensor_msgs"
+  "meca500_interfaces"
+  "rclcpp_action"
+  "std_srvs"
+)
+
+install(TARGETS home_and_follow
+  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
