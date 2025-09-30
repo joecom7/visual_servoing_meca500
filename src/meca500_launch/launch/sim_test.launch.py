@@ -49,8 +49,20 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {
+                "cycle_frequency_hz": 100,
+                "k_p": 2e+0,
+                "k_roll": 1e+2,
+            }
+        ],
+    )
+
+    frame_publisher = Node(
+        package="meca500_utils",
+        executable="frame_publisher",
+        output="screen",
+        parameters=[
+            {
                 "cycle_frequency_hz": 1000,
-                "k_p": 5e+0,
             }
         ],
     )
@@ -94,5 +106,6 @@ def generate_launch_description():
             jacobian_calculator,
             move_group_launch,
             image_jacobian_calculator,
+            frame_publisher
         ]
     )

@@ -24,30 +24,20 @@ public:
         "/get_image_jacobian", [this](const std::shared_ptr<GetImageJacobian::Request> request,
                                       std::shared_ptr<GetImageJacobian::Response> response) {
           Eigen::Matrix<double, 2, 6> L;
-          // Riga 1
-          L(0, 0) = -f_ / (rho_u * request->depth);
-          L(0, 1) = 0.0;
-          L(0, 2) = request->u / request->depth;
-          L(0, 3) = (rho_u * request->u * request->v) / f_;
-          L(0, 4) = -(f_ * f_ + rho_u * rho_u * request->u * request->u) / (rho_u * f_);
-          L(0, 5) = request->v;
-          // Riga 2
-          L(1, 0) = 0.0;
-          L(1, 1) = -f_ / (rho_v * request->depth);
-          L(1, 2) = request->v / request->depth;
-          L(1, 3) = (f_ * f_ + rho_v * rho_v * request->v * request->v) / (rho_v * f_);
-          L(1, 4) = -(rho_v * request->u * request->v) / f_;
-          L(1, 5) = -request->u;
 
-          Eigen::Matrix<double, 2, 6> L_orig = L;
+          L(0, 0) = request->u / request->depth;                                          // vx
+          L(0, 1) = -f_ / rho_u / request->depth;                                         // vy
+          L(0, 2) = 0.0;                                                                  // vz
+          L(0, 3) = request->v;                                                           // wx
+          L(0, 4) = (rho_u * request->u * request->v) / f_;                               // wy
+          L(0, 5) = -(f_ * f_ + rho_u * rho_u * request->u * request->u) / (rho_u * f_);  // wz
 
-          // Map to EE frame
-          L.col(0) = L_orig.col(2);  // vx → old vz
-          L.col(1) = L_orig.col(0);  // vy → old vx
-          L.col(2) = L_orig.col(1);  // vz → old vy
-          L.col(3) = L_orig.col(5);  // wx → old wz
-          L.col(4) = L_orig.col(3);  // wy → old wx
-          L.col(5) = L_orig.col(4);  // wz → old wy
+          L(1, 0) = request->v / request->depth;                                         // vx
+          L(1, 1) = 0.0;                                                                 // vy
+          L(1, 2) = -f_ / rho_v / request->depth;                                        // vz
+          L(1, 3) = -(rho_v * request->u * request->v) / f_;                             // wx
+          L(1, 4) = (f_ * f_ + rho_v * rho_v * request->v * request->v) / (rho_v * f_);  // wy
+          L(1, 5) = -request->u;                                                         // wz
 
           response->rows = L.rows();
           response->cols = L.cols();

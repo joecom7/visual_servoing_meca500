@@ -41,8 +41,22 @@ ament_target_dependencies(
   "moveit_ros_planning_interface"
 )
 
+add_executable(frame_publisher src/frame_publisher.cpp)
+target_include_directories(frame_publisher PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_features(frame_publisher PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  frame_publisher
+  "rclcpp"
+  "meca500_interfaces"
+  "sensor_msgs"
+  "moveit_ros_planning_interface"
+)
+
 install(TARGETS jacobian_calculator
                 image_jacobian_calculator
+                frame_publisher
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
