@@ -42,10 +42,10 @@ def generate_launch_description():
             "x_max": str(2.0),
             "y_min": str(-0.5),
             "y_max": str(0.5),
-            "z_min": str(1.0),
-            "z_max": str(2.0),
+            "z_min": str(0.2),
+            "z_max": str(0.5),
             "actor_speed" : str(0.5),
-            "actor_mesh": "apple",
+            "actor_mesh": "drone",
         }.items(),
     )
 
@@ -108,6 +108,12 @@ def generate_launch_description():
         ],
     )
 
+    target_pose_filter = Node(
+        package="meca500_filtering",
+        executable="target_pose_filter",
+        output="screen",
+    )
+
     jacobian_calculator = Node(
         package="meca500_utils", executable="jacobian_calculator", output="screen"
     )
@@ -151,5 +157,6 @@ def generate_launch_description():
             frame_publisher,
             home_and_follow,
             move_joint_pose,
+            target_pose_filter,
         ]
     )

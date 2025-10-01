@@ -1,6 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include "sensor_msgs/msg/joint_state.hpp"
-#include "geometry_msgs/msg/pose_array.hpp"
+#include "geometry_msgs/msg/pose.hpp"
 #include "meca500_interfaces/srv/get_jacobian.hpp"
 #include "meca500_interfaces/srv/get_image_jacobian.hpp"
 #include <Eigen/Dense>
@@ -43,15 +43,13 @@ public:
           received_joint_state_ = true;
         });
 
-    target_sub_ = this->create_subscription<geometry_msgs::msg::PoseArray>(
-        "/target_poses", 10, [this](const geometry_msgs::msg::PoseArray::SharedPtr msg) {
-          if (!msg->poses.empty())
-          {
-            target_u_ = msg->poses[0].position.x;
-            target_v_ = msg->poses[0].position.y;
-            target_depth_ = msg->poses[0].position.z;
-            received_target_ = true;
-          }
+    // 🔥 QUI: invece di PoseArray leggiamo direttamente Pose
+    target_sub_ = this->create_subscription<geometry_msgs::msg::Pose>(
+        "/filtered_target_pose", 10, [this](const geometry_msgs::msg::Pose::SharedPtr msg) {
+          target_u_ = msg->position.x;
+          target_v_ = msg->position.y;
+          target_depth_ = msg->position.z;
+          received_target_ = true;
         });
 
     // Subscribe to camera pose
@@ -168,7 +166,7 @@ private:
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr control_srv_;
 
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_sub_;
-  rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr target_sub_;
+  rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr target_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr camera_pose_sub_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr vel_pub_;
   rclcpp::Client<GetJacobian>::SharedPtr jacobian_client_;
