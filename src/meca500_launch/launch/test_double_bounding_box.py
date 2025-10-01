@@ -38,13 +38,13 @@ def generate_launch_description():
             "table_height": str(0.5),
             "randomize": "true",
             "randomize_z": "true",
-            "x_min": str(-1.0),
-            "x_max": str(4.0),
-            "y_min": str(-3.0),
-            "y_max": str(3.0),
-            "z_min": str(1.0),
-            "z_max": str(3.0),
-            "actor_speed" : str(0.8),
+            "x_min": str(1.0),
+            "x_max": str(2.0),
+            "y_min": str(-0.5),
+            "y_max": str(0.5),
+            "z_min": str(0.2),
+            "z_max": str(0.5),
+            "actor_speed" : str(0.5),
             "actor_mesh": "drone",
         }.items(),
     )
@@ -89,7 +89,7 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
-                "k_p": 4e0,
+                "k_p": 1e0,
                 "joint_norm_tolerance": 0.05,
             }
         ],
@@ -138,7 +138,7 @@ def generate_launch_description():
             {
                 "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
                 "state_delay_sec": 0.0,
-                "initial_position": [1.57, 0.0, 0.0, 0.0, 0.0, 0.0],
+                "initial_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 "home_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             }
         ],

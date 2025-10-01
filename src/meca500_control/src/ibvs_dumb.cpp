@@ -37,12 +37,6 @@ public:
           RCLCPP_INFO(this->get_logger(), "%s", response->message.c_str());
         });
 
-    joint_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-        "/joint_states", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
-          current_joint_positions_ = msg->position;
-          received_joint_state_ = true;
-        });
-
     // 🔥 QUI: invece di PoseArray leggiamo direttamente Pose
     target_sub_ = this->create_subscription<geometry_msgs::msg::Pose>(
         "/filtered_target_pose", 10, [this](const geometry_msgs::msg::Pose::SharedPtr msg) {
@@ -99,7 +93,7 @@ private:
   {
     if (!control_enabled_)  // skip se disabilitato
       return;
-    if (!received_joint_state_ || !received_target_)
+    if (!received_target_)
       return;
 
     // Call robot Jacobian asynchronously
@@ -165,7 +159,6 @@ private:
   // Members
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr control_srv_;
 
-  rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_sub_;
   rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr target_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr camera_pose_sub_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr vel_pub_;
@@ -173,9 +166,6 @@ private:
   rclcpp::Client<GetImageJacobian>::SharedPtr image_j_client_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr control_timer_;
-
-  std::vector<double> current_joint_positions_{ NUM_JOINTS, 0.0 };
-  bool received_joint_state_ = false;
   bool received_target_ = false;
   bool control_enabled_ = false;
 
