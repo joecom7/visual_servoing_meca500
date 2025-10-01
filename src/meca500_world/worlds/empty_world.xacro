@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<sdf version="1.10" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Actor parameters -->
+  <xacro:arg name="actor_name" default="actor_walking"/>
+  <xacro:property name="actor_name" value="$(arg actor_name)"/>
+
+    <xacro:arg name="actor_mesh" default="walk"/>
+  <xacro:property name="actor_mesh" value="$(arg actor_mesh)"/>
+
+  <!-- Waypoints as separate arguments -->
+  <xacro:arg name="wp1" default="3.5 -1 1 0 0 0"/>
+  <xacro:arg name="wp2" default="5.5 -1 1 0 0 0"/>
+  <xacro:arg name="wp3" default="5.5 -1 1 0 0 1.57"/>
+  <xacro:arg name="wp4" default="5.5 1 1 0 0 1.57"/>
+  <xacro:arg name="wp5" default="5.5 1 1 0 0 3.142"/>
+  <xacro:arg name="wp6" default="3.5 1 1 0 0 3.142"/>
+  <xacro:arg name="wp7" default="3.5 1 1 0 0 -1.57"/>
+  <xacro:arg name="wp8" default="3.5 -1 1 0 0 -1.57"/>
+  <xacro:arg name="wp9" default="3.5 -1 1 0 0 0"/>
+
+  <xacro:arg name="t1" default="0"/>
+  <xacro:arg name="t2" default="2"/>
+  <xacro:arg name="t3" default="2.5"/>
+  <xacro:arg name="t4" default="4"/>
+  <xacro:arg name="t5" default="4.5"/>
+  <xacro:arg name="t6" default="6"/>
+  <xacro:arg name="t7" default="6.5"/>
+  <xacro:arg name="t8" default="8"/>
+  <xacro:arg name="t9" default="8.5"/>
+
+  <xacro:property name="wp1" value="$(arg wp1)"/>
+  <xacro:property name="wp2" value="$(arg wp2)"/>
+  <xacro:property name="wp3" value="$(arg wp3)"/>
+  <xacro:property name="wp4" value="$(arg wp4)"/>
+  <xacro:property name="wp5" value="$(arg wp5)"/>
+  <xacro:property name="wp6" value="$(arg wp6)"/>
+  <xacro:property name="wp7" value="$(arg wp7)"/>
+  <xacro:property name="wp8" value="$(arg wp8)"/>
+  <xacro:property name="wp9" value="$(arg wp9)"/>
+
+  <xacro:property name="t1" value="$(arg t1)"/>
+  <xacro:property name="t2" value="$(arg t2)"/>
+  <xacro:property name="t3" value="$(arg t3)"/>
+  <xacro:property name="t4" value="$(arg t4)"/>
+  <xacro:property name="t5" value="$(arg t5)"/>
+  <xacro:property name="t6" value="$(arg t6)"/>
+  <xacro:property name="t7" value="$(arg t7)"/>
+  <xacro:property name="t8" value="$(arg t8)"/>
+  <xacro:property name="t9" value="$(arg t9)"/>
+
+  <world name="meca500_world">
+    <plugin name="gz::sim::systems::Physics" filename="gz-sim-physics-system"/>
+    <plugin name="gz::sim::systems::UserCommands" filename="gz-sim-user-commands-system"/>
+    <plugin name="gz::sim::systems::SceneBroadcaster" filename="gz-sim-scene-broadcaster-system"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.8 1.0 1</background>
+    </scene>
+
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.5 -1</direction>
+    </light>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground%20Plane</uri>
+    </include>
+
+    <actor name="${actor_name}">
+      <skin>
+        <filename>../meshes/${actor_mesh}.dae</filename>
+        <scale>0.05</scale>
+      </skin>
+      <script>
+        <loop>true</loop>
+        <delay_start>0.0</delay_start>
+        <auto_start>true</auto_start>
+        <trajectory id="0" type="walk" tension="0.6">
+          <waypoint><time>${t1}</time><pose>${wp1}</pose></waypoint>
+          <waypoint><time>${t2}</time><pose>${wp2}</pose></waypoint>
+          <waypoint><time>${t3}</time><pose>${wp3}</pose></waypoint>
+          <waypoint><time>${t4}</time><pose>${wp4}</pose></waypoint>
+          <waypoint><time>${t5}</time><pose>${wp5}</pose></waypoint>
+          <waypoint><time>${t6}</time><pose>${wp6}</pose></waypoint>
+          <waypoint><time>${t7}</time><pose>${wp7}</pose></waypoint>
+          <waypoint><time>${t8}</time><pose>${wp8}</pose></waypoint>
+          <waypoint><time>${t9}</time><pose>${wp9}</pose></waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+  </world>
+</sdf>

@@ -140,7 +140,7 @@ private:
 
         // q_dot IBVS senza influenzare il roll
         Eigen::Vector2d e(target_u_, target_v_);
-        RCLCPP_INFO(this->get_logger(), "roll error: %f", roll_error);
+        // RCLCPP_INFO(this->get_logger(), "roll error: %f", roll_error);
 
         Eigen::MatrixXd J_full = J_img * J_robot;
 

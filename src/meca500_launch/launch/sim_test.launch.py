@@ -6,6 +6,8 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
+CYCLE_FREQUENCY_HZ = 100
+
 
 def generate_launch_description():
     meca500_world_dir = get_package_share_directory("meca500_world")
@@ -30,7 +32,20 @@ def generate_launch_description():
             os.path.join(meca500_world_dir, "launch", "sim.launch.py")
         ),
         launch_arguments={
-            "camera_update_rate": LaunchConfiguration("camera_update_rate")
+            "camera_update_rate": LaunchConfiguration("camera_update_rate"),
+            "table_size_x": str(0.2),
+            "table_size_y": str(0.2),
+            "table_height": str(0.5),
+            "randomize": "true",
+            "randomize_z": "true",
+            "x_min": str(1.0),
+            "x_max": str(2.0),
+            "y_min": str(-0.5),
+            "y_max": str(0.5),
+            "z_min": str(1.0),
+            "z_max": str(2.0),
+            "actor_speed" : str(0.5),
+            "actor_mesh": "apple",
         }.items(),
     )
 
@@ -49,9 +64,9 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {
-                "cycle_frequency_hz": 100,
+                "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
                 "k_p": 2e0,
-                "k_roll": 1e+1,
+                "k_roll": 1e1,
             }
         ],
     )
@@ -62,7 +77,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {
-                "cycle_frequency_hz": 1000,
+                "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
             }
         ],
     )
@@ -73,9 +88,9 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {
-                "cycle_frequency_hz": 1000,
-                "k_p": 1e+0,
-                "joint_norm_tolerance" : 0.05,
+                "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
+                "k_p": 1e0,
+                "joint_norm_tolerance": 0.05,
             }
         ],
     )
@@ -115,7 +130,7 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {
-                "cycle_frequency_hz": 1000,
+                "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
                 "state_delay_sec": 0.0,
                 "initial_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 "home_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],

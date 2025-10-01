@@ -74,8 +74,8 @@ class PersonDetector(Node):
 
         for r in results:
             for box in r.boxes:
-                if int(box.cls) != 0:
-                    continue
+                # if int(box.cls) != 0:
+                #     continue
                 x1, y1, x2, y2 = box.xyxy[0].cpu().detach().numpy()
                 cx = float((x1 + x2) / 2)
                 cy = float((y1 + y2) / 2)
