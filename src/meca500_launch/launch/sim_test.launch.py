@@ -38,14 +38,14 @@ def generate_launch_description():
             "table_height": str(0.5),
             "randomize": "true",
             "randomize_z": "false",
-            "x_min": str(-4.0),
-            "x_max": str(4.0),
-            "y_min": str(-3.0),
-            "y_max": str(3.0),
+            "x_min": str(-1.0),
+            "x_max": str(5.0),
+            "y_min": str(-2.0),
+            "y_max": str(2.0),
             "z_min": str(0.5),
             "z_max": str(1.5),
             "actor_speed": str(0.8),
-            "actor_mesh": "walk",
+            "actor_mesh": "drone",
         }.items(),
     )
 
@@ -95,7 +95,7 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
-                "k_p": 4e0,
+                "k_p": 5e-1,
                 "joint_norm_tolerance": 0.05,
             }
         ],
