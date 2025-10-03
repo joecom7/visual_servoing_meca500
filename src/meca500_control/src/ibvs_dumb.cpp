@@ -131,8 +131,6 @@ private:
             double q = current_joint_positions_[i];
             double q_lower = joint_limits_lower_[i];
             double q_upper = joint_limits_upper_[i];
-            double q_mid = (q_lower + q_upper) / 2.0;
-            double q_range = q_upper - q_lower;
             
             // Distance from lower and upper limits
             double dist_lower = q - q_lower;
@@ -163,10 +161,7 @@ private:
         
         // Create weighted identity Jacobian
         // Active joints have weight > 0, inactive joints have weight = 0
-        J_limit = Eigen::MatrixXd::Zero(NUM_JOINTS, NUM_JOINTS);
-        for (int i = 0; i < NUM_JOINTS; ++i) {
-            J_limit(i, i) = weights[i];
-        }
+        J_limit = Eigen::MatrixXd::Identity(NUM_JOINTS, NUM_JOINTS);
         
         // Remove zero rows (inactive joints) for proper null space computation
         int active_count = 0;
