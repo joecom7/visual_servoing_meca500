@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'image_listener = meca500_vision.image_subscriber:main',
+            'random_walk = meca500_vision.random_walk:main',
         ],
     },
 )

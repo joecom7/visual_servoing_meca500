@@ -95,7 +95,7 @@ def generate_launch_description():
         parameters=[
             {
                 "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
-                "k_p": 1e0,
+                "k_p": 5e-1,
                 "joint_norm_tolerance": 0.05,
             }
         ],
@@ -103,16 +103,13 @@ def generate_launch_description():
 
     meca500_vision = Node(
         package="meca500_vision",
-        executable="random_walk",
+        executable="image_listener",
         output="screen",
         parameters=[
             {
                 "performance_mode": LaunchConfiguration("performance_mode"),
                 "image_width_pixels": 1280,
                 "image_height_pixels": 720,
-                "step_size": 5.0,
-                "refresh_rate": 20.0,
-                "num_targets": 1,
             }
         ],
     )
