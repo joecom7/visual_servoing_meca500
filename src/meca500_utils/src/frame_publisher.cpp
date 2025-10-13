@@ -19,6 +19,7 @@ public:
   {
     // Publisher
     pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("/camera_pose", 10);
+    table_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("/table_pose_relative_to_camera", 10);
 
     // TF buffer and listener
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -38,9 +39,21 @@ private:
     geometry_msgs::msg::TransformStamped transformStamped;
     try
     {
-      transformStamped = tf_buffer_->lookupTransform("D435i_camera_link", "table_link", tf2::TimePointZero);
+      transformStamped = tf_buffer_->lookupTransform("table_link", "D435i_camera_link", tf2::TimePointZero);
 
       geometry_msgs::msg::PoseStamped pose_msg;
+      pose_msg.header.stamp = this->now();
+      pose_msg.header.frame_id = "table_link";
+      pose_msg.pose.position.x = transformStamped.transform.translation.x;
+      pose_msg.pose.position.y = transformStamped.transform.translation.y;
+      pose_msg.pose.position.z = transformStamped.transform.translation.z;
+      pose_msg.pose.orientation = transformStamped.transform.rotation;
+
+      table_pub_->publish(pose_msg);
+
+      transformStamped = tf_buffer_->lookupTransform("D435i_camera_link", "table_link", tf2::TimePointZero);
+
+      
       pose_msg.header.stamp = this->now();
       pose_msg.header.frame_id = "D435i_camera_link";
       pose_msg.pose.position.x = transformStamped.transform.translation.x;
@@ -57,6 +70,8 @@ private:
   }
 
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr table_pub_;
+
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   rclcpp::TimerBase::SharedPtr timer_;

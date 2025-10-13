@@ -66,7 +66,7 @@ def generate_launch_description():
             {
                 "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
                 "k_p": 2e0,
-                "k_roll": 1e1,
+                "k_roll": 5e1,
                 "k_limit": 0.01,
                 "limit_threshold_deg": 10.0,
                 "joint_limits_lower": [-175.0, -70.0, -135.0, -170.0, -115.0, -360.0],
@@ -103,7 +103,7 @@ def generate_launch_description():
 
     meca500_vision = Node(
         package="meca500_vision",
-        executable="random_walk",
+        executable="image_listener",
         output="screen",
         parameters=[
             {
