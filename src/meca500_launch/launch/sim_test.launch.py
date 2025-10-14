@@ -147,8 +147,8 @@ def generate_launch_description():
             {
                 "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
                 "state_delay_sec": 0.0,
-                "initial_position": [1.57, 0.0, 0.0, 0.0, 0.0, 0.0],
-                "home_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                "initial_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                "home_position": [0.0, 0.0, 0.0,0.0, 1.5708, 0.0],
             }
         ],
     )
