@@ -105,8 +105,7 @@ public:
         "/camera_pose", 10, [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
           Eigen::Quaterniond q_cam(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y,
                                    msg->pose.orientation.z);
-          camera_rotation_matrix = q_cam.toRotationMatrix();
-          Eigen::Vector3d Z_wr = camera_rotation_matrix.col(2);
+          Eigen::Vector3d Z_wr = q_cam.toRotationMatrix().col(2);
           Eigen::Vector3d proj_YZ(0, Z_wr.y(), Z_wr.z());
           roll_error = std::atan2(proj_YZ.y(), proj_YZ.z());
         });
@@ -116,7 +115,8 @@ public:
           Eigen::Quaterniond q_cam(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y,
                                    msg->pose.orientation.z);
 
-          RCLCPP_INFO(this->get_logger(), "Roll error: %f", roll_error);
+          // RCLCPP_INFO(this->get_logger(), "Roll error: %f", roll_error);
+          camera_rotation_matrix = q_cam.toRotationMatrix();
 
           current_ee_z_ = msg->pose.position.z;
           received_ee_pose_ = true;
@@ -169,17 +169,19 @@ private:
       {
         double ratio = dist_lower / threshold_rad;
         // Smooth activation: 1 at limit, 0 at threshold
-        activation = 1.0 - ratio * ratio * (3.0 - 2.0 * ratio);  // smoothstep
+        activation = 1.1 - ratio * ratio * (3.0 - 2.0 * ratio);  // smoothstep
         repulsion = activation;                                  // positive velocity (away from lower limit)
         weights[i] = activation;
+        RCLCPP_INFO(this->get_logger(), "joint limit: joint %d, value %f, limit %f", i, q, q_lower);
       }
       // Near upper limit
       else if (dist_upper < threshold_rad)
       {
         double ratio = dist_upper / threshold_rad;
-        activation = 1.0 - ratio * ratio * (3.0 - 2.0 * ratio);  // smoothstep
+        activation = 1.1 - ratio * ratio * (3.0 - 2.0 * ratio);  // smoothstep
         repulsion = -activation;                                 // negative velocity (away from upper limit)
         weights[i] = activation;
+        RCLCPP_INFO(this->get_logger(), "joint limit: joint %d, value %f, limit %f", i, q, q_upper);
       }
 
       q_dot_limit[i] = repulsion;
@@ -283,8 +285,8 @@ private:
 
         Eigen::MatrixXd J_tool(6, NUM_JOINTS);
 
-        J_tool.topRows(3) = camera_rotation_matrix.transpose() * J_robot.topRows(3);        // linear velocity
-        J_tool.bottomRows(3) = camera_rotation_matrix.transpose() * J_robot.bottomRows(3);  // angular velocity
+        J_tool.topRows(3) = camera_rotation_matrix * J_robot.topRows(3);        // linear velocity
+        J_tool.bottomRows(3) = camera_rotation_matrix * J_robot.bottomRows(3);  // angular velocity
 
         // === TASK 1: JOINT LIMIT AVOIDANCE (HIGHEST PRIORITY) ===
         Eigen::VectorXd q_dot_limit;
