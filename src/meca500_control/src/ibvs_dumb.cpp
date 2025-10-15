@@ -106,16 +106,15 @@ public:
           Eigen::Quaterniond q_cam(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y,
                                    msg->pose.orientation.z);
           camera_rotation_matrix = q_cam.toRotationMatrix();
+          Eigen::Vector3d Z_wr = camera_rotation_matrix.col(2);
+          Eigen::Vector3d proj_YZ(0, Z_wr.y(), Z_wr.z());
+          roll_error = std::atan2(proj_YZ.y(), proj_YZ.z());
         });
 
     table_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
         "/table_pose_relative_to_camera", 10, [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
           Eigen::Quaterniond q_cam(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y,
                                    msg->pose.orientation.z);
-          Eigen::Matrix3d R_cam_world = q_cam.toRotationMatrix();
-          Eigen::Vector3d Z_wr = R_cam_world.col(2);
-          Eigen::Vector3d proj_YZ(0, Z_wr.y(), Z_wr.z());
-          roll_error = std::atan2(proj_YZ.y(), proj_YZ.z());
 
           RCLCPP_INFO(this->get_logger(), "Roll error: %f", roll_error);
 
@@ -282,6 +281,11 @@ private:
         Eigen::Map<Eigen::VectorXd>(J_img.data(), J_img.size()) =
             Eigen::Map<Eigen::VectorXd>(img_res->image_jacobian.data(), img_res->image_jacobian.size());
 
+        Eigen::MatrixXd J_tool(6, NUM_JOINTS);
+
+        J_tool.topRows(3) = camera_rotation_matrix.transpose() * J_robot.topRows(3);        // linear velocity
+        J_tool.bottomRows(3) = camera_rotation_matrix.transpose() * J_robot.bottomRows(3);  // angular velocity
+
         // === TASK 1: JOINT LIMIT AVOIDANCE (HIGHEST PRIORITY) ===
         Eigen::VectorXd q_dot_limit;
         Eigen::MatrixXd J_limit;
@@ -319,12 +323,8 @@ private:
         }
 
         // === TASK 3: ROLL CONTROL (TERTIARY) ===
-        Eigen::MatrixXd J_tool(6, NUM_JOINTS);
-
-        J_tool.topRows(3) = camera_rotation_matrix.transpose() * J_robot.topRows(3);        // linear velocity
-        J_tool.bottomRows(3) = camera_rotation_matrix.transpose() * J_robot.bottomRows(3);  // angular velocity
-        Eigen::MatrixXd J_roll = J_tool.bottomRows(3).row(0);                               // 1x6
-        Eigen::VectorXd q_dot_roll = k_roll_ * J_roll.completeOrthogonalDecomposition().pseudoInverse() * roll_error;
+        Eigen::MatrixXd J_roll = J_tool.row(3);  // 1x6
+        Eigen::VectorXd q_dot_roll = -k_roll_ * J_roll.completeOrthogonalDecomposition().pseudoInverse() * roll_error;
 
         // Project through limit and collision null spaces
         q_dot_roll = P_collision * q_dot_roll;
@@ -335,7 +335,7 @@ private:
 
         // === TASK 4: IBVS (QUATERNARY) ===
         Eigen::Vector2d e(target_u_, target_v_);
-        Eigen::MatrixXd J_full = J_img * J_robot;
+        Eigen::MatrixXd J_full = J_img * J_tool;
         Eigen::VectorXd q_dot_ibvs = k_p_ * J_full.completeOrthogonalDecomposition().pseudoInverse() * e;
 
         // Project through all higher priority null spaces
