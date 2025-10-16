@@ -6,6 +6,8 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
+CYCLE_FREQUENCY_HZ = 100
+
 
 def generate_launch_description():
     meca500_world_dir = get_package_share_directory("meca500_world")
@@ -30,7 +32,20 @@ def generate_launch_description():
             os.path.join(meca500_world_dir, "launch", "sim.launch.py")
         ),
         launch_arguments={
-            "camera_update_rate": LaunchConfiguration("camera_update_rate")
+            "camera_update_rate": LaunchConfiguration("camera_update_rate"),
+            "table_size_x": str(0.2),
+            "table_size_y": str(0.2),
+            "table_height": str(0.5),
+            "randomize": "false",
+            "randomize_z": "true",
+            "x_min": str(2.0),
+            "x_max": str(5.0),
+            "y_min": str(-4.0),
+            "y_max": str(4.0),
+            "z_min": str(0.5),
+            "z_max": str(3.5),
+            "actor_speed": str(0.8),
+            "actor_mesh": "walk",
         }.items(),
     )
 
@@ -49,9 +64,24 @@ def generate_launch_description():
         output="screen",
         parameters=[
             {
-                "cycle_frequency_hz": 1000,
-                "circle_radius": 0.02,
-                "circle_period_s": 2.0,
+                "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
+                "circle_radius" : 0.05,
+                "circle_period_s" : 5.0,
+                "home_position": [0.0, 0.5236, -0.5236, 0.0, 1.5708, 0.0],
+                "motion_duration_s" : 10.0,
+                # "joint_limits_lower": [-30.0, -70.0, -135.0, -170.0, -115.0, -36000.0],
+                # "joint_limits_upper": [30.0, 90.0, 70.0, 170.0, 115.0, 36000.0],
+            }
+        ],
+    )
+
+    frame_publisher = Node(
+        package="meca500_utils",
+        executable="frame_publisher",
+        output="screen",
+        parameters=[
+            {
+                "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
             }
         ],
     )
@@ -65,8 +95,17 @@ def generate_launch_description():
                 "performance_mode": LaunchConfiguration("performance_mode"),
                 "image_width_pixels": 1280,
                 "image_height_pixels": 720,
+                "step_size": 5.0,
+                "refresh_rate": 20.0,
+                "num_targets": 1,
             }
         ],
+    )
+
+    target_pose_filter = Node(
+        package="meca500_filtering",
+        executable="target_pose_filter",
+        output="screen",
     )
 
     jacobian_calculator = Node(
@@ -85,6 +124,19 @@ def generate_launch_description():
         ],
     )
 
+    move_joint_pose = Node(
+        package="meca500_control",
+        executable="move_joint_pose",
+        output="screen",
+        parameters=[
+            {
+                "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
+                "k_p": 1e0,
+                "joint_norm_tolerance": 0.05,
+            }
+        ],
+    )
+
     return LaunchDescription(
         [
             declare_camera_update_rate,
@@ -95,5 +147,8 @@ def generate_launch_description():
             jacobian_calculator,
             move_group_launch,
             image_jacobian_calculator,
+            frame_publisher,
+            target_pose_filter,
+            move_joint_pose
         ]
     )
