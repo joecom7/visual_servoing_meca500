@@ -15,7 +15,7 @@ def generate_launch_description():
     # Declare the camera_update_rate argument so it can be overridden from CLI
     declare_camera_update_rate = DeclareLaunchArgument(
         "camera_update_rate",
-        default_value="60.0",
+        default_value="10.0",
         description="Update rate of the camera in Hz",
     )
 
@@ -44,8 +44,8 @@ def generate_launch_description():
             "y_max": str(2.0),
             "z_min": str(0.5),
             "z_max": str(1.5),
-            "actor_speed": str(0.8),
-            "actor_mesh": "drone",
+            "actor_speed": str(0.6),
+            "actor_mesh": "walk",
         }.items(),
     )
 
@@ -144,8 +144,8 @@ def generate_launch_description():
             {
                 "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
                 "state_delay_sec": 0.0,
-                "initial_position": [1.57, 0.0, 0.0, 0.0, 0.0, 0.0],
-                "home_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                "initial_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                "home_position": [0.0, 0.5236, -0.5236,0.0, 1.5708, 0.0],
             }
         ],
     )

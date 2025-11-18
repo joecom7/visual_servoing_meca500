@@ -15,7 +15,7 @@ def generate_launch_description():
     # Declare the camera_update_rate argument so it can be overridden from CLI
     declare_camera_update_rate = DeclareLaunchArgument(
         "camera_update_rate",
-        default_value="60.0",
+        default_value="10.0",
         description="Update rate of the camera in Hz",
     )
 
