@@ -18,5 +18,25 @@ services:
     stdin_open: true
     tty: true
 
+
+  ros2-jazzy-humble-bridge:
+    build:
+      context: ../
+      dockerfile: docker/bridge/Dockerfile
+    container_name: ros2-jazzy-humble-bridge
+    network_mode: host   # ROS2 DDS ha bisogno di multicast -> host networking
+    environment:
+      - DISPLAY=${DISPLAY}             # forward GUI opzionale
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # X11 socket
+      - meca500_bridge_build_data:/root/ws
+      - ./bridge/src:/root/ws/src:ro
+    devices:
+      - /dev/dri:/dev/dri        # accesso GPU Intel/AMD (mesa)
+    stdin_open: true
+    tty: true
+
 volumes:
   meca500_vs_build_data:
+  meca500_bridge_build_data:

@@ -43,6 +43,8 @@ RUN /venv/bin/pip install --upgrade pip && \
 
 
 COPY docker/entrypoint.sh /entrypoint.sh
+COPY docker/scripts/set_up_env_docker.sh /set_up_env_docker.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ENV ROS_DOMAIN_ID=30
