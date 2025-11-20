@@ -289,26 +289,22 @@ def launch_sim(context, *args, **kwargs):
     )
 
     load_nodes = Node(
-        package="ros_gz_sim",
-        executable="create",
-        output="screen",
-        parameters=[
-            {
-                "world": world,
-                "file": file,
-                "string": model_string,
-                "topic": topic,
-                "name": entity_name,
-                "allow_renaming": allow_renaming,
-                "x": x,
-                "y": y,
-                "z": z,
-                "R": roll,
-                "P": pitch,
-                "Y": yaw,
-            }
-        ],
-    )
+    package="ros_gz_sim",
+    executable="create",
+    output="screen",
+    arguments=[
+        "-world", world,
+        "-file", file,
+        "-name", entity_name,
+        "-allow_renaming", allow_renaming,
+        "-x", x,
+        "-y", y,
+        "-z", z,
+        "-R", roll,
+        "-P", pitch,
+        "-Y", yaw,
+    ],
+)
 
     joint_velocity_bridge = Node(
         package="meca500_world", executable="joint_velocity_bridge", output="screen"

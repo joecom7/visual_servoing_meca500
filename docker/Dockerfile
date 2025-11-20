@@ -1,4 +1,4 @@
-FROM ros:jazzy
+FROM ros:humble
 
 RUN apt-get update && apt-get install -y \
     curl lsb-release gnupg
@@ -7,7 +7,7 @@ RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyri
 
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 
-RUN apt-get update && apt-get install -y  gz-harmonic ros-jazzy-ros-gz-sim ros-jazzy-ros-gz-image ros-jazzy-cv-bridge ros-jazzy-moveit python3-venv virtualenv wget fuse ros-jazzy-realtime-tools
+RUN apt-get update && apt-get install -y ros-humble-rmw-cyclonedds-cpp gz-harmonic ros-humble-ros-gz-sim ros-humble-ros-gz-image ros-humble-cv-bridge ros-humble-moveit python3-venv virtualenv wget fuse ros-humble-realtime-tools
 
 # RUN cd /tmp && \
 #     wget https://source.denx.de/Xenomai/xenomai/-/archive/v3.2.4/xenomai-v3.2.4.tar.gz && \
@@ -47,5 +47,3 @@ ENTRYPOINT ["/entrypoint.sh"]
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ENV ROS_DOMAIN_ID=30
 CMD ["bash"]
-
-RUN apt-get update && apt-get install -y ros-jazzy-rmw-cyclonedds-cpp
