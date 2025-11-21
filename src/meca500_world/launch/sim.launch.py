@@ -45,18 +45,18 @@ def generate_fixed_trajectory():
 
 
 def generate_random_waypoints(
-    n=9, 
-    x_min=1.0, 
-    x_max=5.0, 
-    y_min=-5.0, 
-    y_max=5.0, 
-    z_min=0.5, 
+    n=9,
+    x_min=1.0,
+    x_max=5.0,
+    y_min=-5.0,
+    y_max=5.0,
+    z_min=0.5,
     z_max=1.5,
     randomize_z=False,
-    speed=1.0
+    speed=1.0,
 ):
     """Generate n random waypoints with timestamps and yaw along the path.
-    
+
     Args:
         n: number of waypoints
         x_min, x_max: bounds for x coordinate
@@ -66,7 +66,7 @@ def generate_random_waypoints(
         speed: constant speed in m/s for trajectory
     """
     waypoints = []
-    
+
     # First pass: generate all waypoint positions
     for i in range(n):
         if i == 0:
@@ -97,10 +97,10 @@ def generate_random_waypoints(
     # Third pass: calculate times based on distance and constant speed
     times = []
     total_time = 0.0
-    
+
     for i in range(len(waypoints)):
         times.append(round(total_time, 2))
-        
+
         if i < len(waypoints) - 1:
             dx = waypoints[i + 1]["x"] - waypoints[i]["x"]
             dy = waypoints[i + 1]["y"] - waypoints[i]["y"]
@@ -176,9 +176,11 @@ def launch_sim(context, *args, **kwargs):
             z_min=z_min,
             z_max=z_max,
             randomize_z=randomize_z,
-            speed=actor_speed
+            speed=actor_speed,
         )
-        print(f"[INFO] Generated random trajectory with {len(waypoints)} waypoints at {actor_speed} m/s")
+        print(
+            f"[INFO] Generated random trajectory with {len(waypoints)} waypoints at {actor_speed} m/s"
+        )
     else:
         waypoints, times = generate_fixed_trajectory()
         print(f"[INFO] Using fixed predefined trajectory")
@@ -289,26 +291,54 @@ def launch_sim(context, *args, **kwargs):
     )
 
     load_nodes = Node(
-    package="ros_gz_sim",
-    executable="create",
-    output="screen",
-    arguments=[
-        "-world", world,
-        "-file", file,
-        "-name", entity_name,
-        "-allow_renaming", allow_renaming,
-        "-x", x,
-        "-y", y,
-        "-z", z,
-        "-R", roll,
-        "-P", pitch,
-        "-Y", yaw,
-    ],
-)
+        package="ros_gz_sim",
+        executable="create",
+        output="screen",
+        arguments=[
+            "-world",
+            world,
+            "-file",
+            file,
+            "-name",
+            entity_name,
+            "-allow_renaming",
+            allow_renaming,
+            "-x",
+            x,
+            "-y",
+            y,
+            "-z",
+            z,
+            "-R",
+            roll,
+            "-P",
+            pitch,
+            "-Y",
+            yaw,
+        ],
+    )
 
     joint_velocity_bridge = Node(
         package="meca500_world", executable="joint_velocity_bridge", output="screen"
     )
+
+    xeno_bridge = Node(
+        package="meca500_world", executable="xeno_bridge", output="screen"
+    )
+
+    publish_only = (
+        LaunchConfiguration("publish_only").perform(context).lower() == "true"
+    )
+
+    if publish_only:
+        print("[INFO] publish_only=true → Only launching robot_state_publisher")
+        return [
+            robot_state,  # Publishes /robot_description and TF
+            joint_velocity_bridge,
+            xeno_bridge,
+            # Optional: the TF static bridge if MoveIt needs it
+            # bridge,
+        ]
 
     return [
         declare_world_cmd,
@@ -414,6 +444,12 @@ def generate_launch_description():
         description="Maximum z coordinate for random trajectory (only used if randomize_z=true)",
     )
 
+    declare_publish_only = DeclareLaunchArgument(
+        "publish_only",
+        default_value="false",
+        description="Publish URDF but do not start simulation",
+    )
+
     return LaunchDescription(
         [
             declare_camera_update_rate,
@@ -431,6 +467,7 @@ def generate_launch_description():
             declare_y_max,
             declare_z_min,
             declare_z_max,
+            declare_publish_only,
             OpaqueFunction(function=launch_sim),
         ]
     )

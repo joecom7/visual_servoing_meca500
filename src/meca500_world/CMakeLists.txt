@@ -11,6 +11,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(xenopkg_interfaces REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -27,7 +28,21 @@ ament_target_dependencies(
   "std_msgs"
 )
 
+add_executable(xeno_bridge src/xeno_bridge.cpp)
+target_include_directories(xeno_bridge PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_features(xeno_bridge PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  xeno_bridge
+  "rclcpp"
+  "sensor_msgs"
+  "std_msgs"
+  "xenopkg_interfaces"
+)
+
 install(TARGETS joint_velocity_bridge
+xeno_bridge
   DESTINATION lib/${PROJECT_NAME})
 
 install(

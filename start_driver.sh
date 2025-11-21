@@ -1,1 +1,0 @@
-gnome-terminal -- bash -c "sudo -E -S ~/prova_xenomai_ws/run_driver.sh" &
