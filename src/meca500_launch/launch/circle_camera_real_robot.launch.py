@@ -64,7 +64,7 @@ def generate_launch_description():
                 "circle_radius" : 0.05,
                 "circle_period_s" : 5.0,
                 "home_position": [0.0, 0.5236, -0.5236, 0.0, 1.5708, 0.0],
-                "motion_duration_s" : 20.0,
+                "motion_duration_s" : 10.0,
                 # "joint_limits_lower": [-30.0, -70.0, -135.0, -170.0, -115.0, -36000.0],
                 # "joint_limits_upper": [30.0, 90.0, 70.0, 170.0, 115.0, 36000.0],
             }
@@ -133,6 +133,19 @@ def generate_launch_description():
         ],
     )
 
+    realsense_driver = Node(
+        package="realsense2_camera",
+        executable="realsense2_camera_node",
+        output="screen",
+        # parameters=[
+        #     {
+        #         "cycle_frequency_hz": CYCLE_FREQUENCY_HZ,
+        #         "k_p": 1e0,
+        #         "joint_norm_tolerance": 0.05,
+        #     }
+        # ],
+    )
+
     return LaunchDescription(
         [
             declare_camera_update_rate,
@@ -146,6 +159,7 @@ def generate_launch_description():
             frame_publisher,
             target_pose_filter,
             move_joint_pose,
-            meca500_driver
+            meca500_driver,
+            realsense_driver
         ]
     )

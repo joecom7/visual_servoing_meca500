@@ -37,9 +37,9 @@ class PersonDetector(Node):
 
         # ROS subscriptions and publishers
         self.subscription = self.create_subscription(
-            Image, "/camera/image_raw", self.listener_callback, 10
+            Image, "/camera/camera/color/image_raw", self.listener_callback, 10
         )
-        self.create_subscription(Image, "/camera/depth_image", self.depth_callback, 10)
+        self.create_subscription(Image, "/camera/camera/depth/image_rect_raw", self.depth_callback, 10)
 
         self.publisher = self.create_publisher(PoseArray, "/target_poses", 10)
         self.bridge = CvBridge()
