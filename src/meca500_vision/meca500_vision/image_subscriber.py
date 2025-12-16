@@ -74,7 +74,7 @@ class PersonDetector(Node):
 
         for r in results:
             for box in r.boxes:
-                allowed = {"person", "airplane", "bird"}
+                allowed = {"person"}
                 label = self.model.names[int(box.cls)]
                 if label not in allowed:
                     continue
@@ -92,7 +92,7 @@ class PersonDetector(Node):
                 pose = Pose()
                 pose.position.x = cx - self.image_width_pixels / 2
                 pose.position.y = cy - self.image_height_pixels / 2
-                pose.position.z = depth_value
+                pose.position.z = 1.0
                 pose_array.poses.append(pose)
 
         if pose_array.poses:

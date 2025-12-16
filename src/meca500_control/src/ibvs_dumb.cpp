@@ -108,6 +108,8 @@ public:
           Eigen::Vector3d Z_wr = q_cam.toRotationMatrix().col(2);
           Eigen::Vector3d proj_YZ(0, Z_wr.y(), Z_wr.z());
           roll_error = std::atan2(proj_YZ.y(), proj_YZ.z());
+
+          camera_rotation_matrix = q_cam.toRotationMatrix();
         });
 
     table_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
@@ -116,9 +118,11 @@ public:
                                    msg->pose.orientation.z);
 
           // RCLCPP_INFO(this->get_logger(), "Roll error: %f", roll_error);
-          camera_rotation_matrix = q_cam.toRotationMatrix();
+
 
           current_ee_z_ = msg->pose.position.z;
+          // RCLCPP_INFO(this->get_logger(), "ee_z: %f", current_ee_z_);
+
           received_ee_pose_ = true;
         });
 
@@ -327,10 +331,7 @@ private:
         // === TASK 3: ROLL CONTROL (TERTIARY) ===
         Eigen::MatrixXd J_roll = J_tool.row(3);  // 1x6
         Eigen::VectorXd q_dot_roll = -k_roll_ * J_roll.completeOrthogonalDecomposition().pseudoInverse() * roll_error;
-
-        // Project through limit and collision null spaces
-        q_dot_roll = P_collision * q_dot_roll;
-
+        
         // Null space projector for limit, collision, and roll
         Eigen::MatrixXd P_roll = P_collision * (Eigen::MatrixXd::Identity(NUM_JOINTS, NUM_JOINTS) -
                                                 J_roll.completeOrthogonalDecomposition().pseudoInverse() * J_roll);
