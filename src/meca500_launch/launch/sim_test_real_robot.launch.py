@@ -72,10 +72,12 @@ def generate_launch_description():
                 "k_p": 1e-0,
                 "k_roll": 1e-0,
                 "k_limit": 0.1,
+                "k_collision": 0.1,
                 "limit_threshold_deg": 10.0,
                 "joint_limits_lower": [-175.0, -70.0, -135.0, -170.0, -115.0, -360.0],
                 "joint_limits_upper": [175.0, 90.0, 70.0, 170.0, 115.0, 360.0],
-                "z_min_threshold_m": 1.9,
+                "z_min_threshold_m": 0.08,
+                "collision_threshold_m" : 0.03,
                 # "joint_limits_lower": [-30.0, -70.0, -135.0, -170.0, -115.0, -36000.0],
                 # "joint_limits_upper": [30.0, 90.0, 70.0, 170.0, 115.0, 36000.0],
             }
@@ -160,6 +162,7 @@ def generate_launch_description():
                 "state_delay_sec": 0.0,
                 "initial_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 "home_position": [0.0, 0.5236, -0.5236,0.0, 1.5708, 0.0],
+                "no_target_timeout_ms" : 500.0,
             }
         ],
     )

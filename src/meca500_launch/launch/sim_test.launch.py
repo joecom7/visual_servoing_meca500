@@ -149,6 +149,7 @@ def generate_launch_description():
                 "state_delay_sec": 0.0,
                 "initial_position": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                 "home_position": [0.0, 0.5236, -0.5236,0.0, 1.5708, 0.0],
+                "no_target_timeout_ms" : 5000.0,
             }
         ],
     )

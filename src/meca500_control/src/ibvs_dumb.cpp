@@ -3,10 +3,13 @@
 #include "geometry_msgs/msg/pose.hpp"
 #include "meca500_interfaces/srv/get_jacobian.hpp"
 #include "meca500_interfaces/srv/get_image_jacobian.hpp"
+#include "std_msgs/msg/float64.hpp"
 #include <Eigen/Dense>
 #include <vector>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <std_srvs/srv/set_bool.hpp>
+
+#define REAL_Z_OFFSET 2.0
 
 using GetJacobian = meca500_interfaces::srv::GetJacobian;
 using GetImageJacobian = meca500_interfaces::srv::GetImageJacobian;
@@ -109,6 +112,11 @@ public:
           Eigen::Vector3d proj_YZ(0, Z_wr.y(), Z_wr.z());
           roll_error = std::atan2(proj_YZ.y(), proj_YZ.z());
 
+          // publish roll error
+          std_msgs::msg::Float64 roll_msg;
+          roll_msg.data = roll_error;
+          roll_error_pub_->publish(roll_msg);
+
           camera_rotation_matrix = q_cam.toRotationMatrix();
         });
 
@@ -120,13 +128,17 @@ public:
           // RCLCPP_INFO(this->get_logger(), "Roll error: %f", roll_error);
 
 
-          current_ee_z_ = msg->pose.position.z;
+          current_ee_z_ = msg->pose.position.z - REAL_Z_OFFSET;
           // RCLCPP_INFO(this->get_logger(), "ee_z: %f", current_ee_z_);
 
           received_ee_pose_ = true;
         });
 
     vel_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("/joint_velocity_cmd", 10);
+    roll_error_pub_ = this->create_publisher<std_msgs::msg::Float64>("/roll_error", 10);
+    roll_activation_pub_ = this->create_publisher<std_msgs::msg::Float64>("/roll_activation", 10);
+    z_ee_pub_ = this->create_publisher<std_msgs::msg::Float64>("/ee_z", 10);
+    z_activation_pub_ = this->create_publisher<std_msgs::msg::Float64>("/z_activation", 10);  
 
     // Clients
     jacobian_client_ = this->create_client<GetJacobian>("/get_jacobian");
@@ -235,12 +247,20 @@ private:
     // Distance from minimum z threshold
     double dist_from_min = current_ee_z_ - z_min_threshold_m_;
 
+    double z_act = 0.0;
+
     // Check if within the activation threshold
     if (dist_from_min < collision_threshold_m_)
     {
       // Smoothstep activation: 1 at threshold, 0 at safe distance
       double ratio = dist_from_min / collision_threshold_m_;
+      if(ratio < 0.0) {
+        ratio = 0.0;
+      }
+
       double activation = 1.0 - ratio * ratio * (3.0 - 2.0 * ratio);
+
+      z_act = activation;
 
       // Repulsive velocity (positive z direction)
       z_dot_collision = Eigen::VectorXd::Ones(1) * activation;
@@ -256,6 +276,14 @@ private:
       J_collision = Eigen::MatrixXd::Zero(0, NUM_JOINTS);
       z_dot_collision = Eigen::VectorXd::Zero(0);
     }
+
+    // Publish debug info
+    std_msgs::msg::Float64 z_msg;
+    z_msg.data = current_ee_z_;
+    z_ee_pub_->publish(z_msg);
+    std_msgs::msg::Float64 z_act_msg;
+    z_act_msg.data = z_act;
+    z_activation_pub_->publish(z_act_msg);  
   }
 
   void control_loop()
@@ -318,7 +346,7 @@ private:
         if (J_collision.rows() > 0)
         {
           q_dot_collision_task =
-              -k_collision_ * J_collision.completeOrthogonalDecomposition().pseudoInverse() * z_dot_collision;
+              k_collision_ * J_collision.completeOrthogonalDecomposition().pseudoInverse() * z_dot_collision;
 
           // Project through limit avoidance null space
           q_dot_collision_task = P_limit * q_dot_collision_task;
@@ -332,6 +360,13 @@ private:
         Eigen::MatrixXd J_roll = J_tool.row(3);  // 1x6
         Eigen::VectorXd q_dot_roll = -k_roll_ * J_roll.completeOrthogonalDecomposition().pseudoInverse() * roll_error;
         
+        // publish roll activation
+        double roll_activation = q_dot_roll.norm();
+        std_msgs::msg::Float64 roll_act_msg;
+        roll_act_msg.data = roll_activation;
+        roll_activation_pub_->publish(roll_act_msg);
+        
+
         // Null space projector for limit, collision, and roll
         Eigen::MatrixXd P_roll = P_collision * (Eigen::MatrixXd::Identity(NUM_JOINTS, NUM_JOINTS) -
                                                 J_roll.completeOrthogonalDecomposition().pseudoInverse() * J_roll);
@@ -370,6 +405,10 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr table_pose_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr end_effector_sub_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr vel_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr roll_error_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr roll_activation_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr z_ee_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr z_activation_pub_;
   rclcpp::Client<GetJacobian>::SharedPtr jacobian_client_;
   rclcpp::Client<GetImageJacobian>::SharedPtr image_j_client_;
   rclcpp::TimerBase::SharedPtr timer_;

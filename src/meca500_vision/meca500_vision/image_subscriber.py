@@ -33,7 +33,7 @@ class PersonDetector(Node):
         self.declare_parameter("image_height_pixels", 720)
         self.image_height_pixels = self.get_parameter("image_height_pixels").value
 
-        self.model = YOLO("yolov8n.pt")
+        self.model = YOLO("yolov8s.pt")
 
         # ROS subscriptions and publishers
         self.subscription = self.create_subscription(
@@ -74,7 +74,7 @@ class PersonDetector(Node):
 
         for r in results:
             for box in r.boxes:
-                allowed = {"person"}
+                allowed = {"banana"}
                 label = self.model.names[int(box.cls)]
                 if label not in allowed:
                     continue
